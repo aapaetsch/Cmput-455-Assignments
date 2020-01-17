@@ -42,14 +42,7 @@ class GtpConnection():
             "genmove": self.genmove_cmd,
             "list_commands": self.list_commands_cmd,
             "play": self.play_cmd,
-            "legal_moves": self.legal_moves_cmd,
-            "gogui-rules_game_id": self.gogui_rules_game_id_cmd,
-            "gogui-rules_board_size": self.gogui_rules_board_size_cmd,
-            "gogui-rules_legal_moves": self.gogui_rules_legal_moves_cmd,
-            "gogui-rules_side_to_move": self.gogui_rules_side_to_move_cmd,
-            "gogui-rules_board": self.gogui_rules_board_cmd,
-            "gogui-rules_final_result": self.gogui_rules_final_result_cmd,
-            "gogui-analyze_commands": self.gogui_analyze_cmd
+            "legal_moves": self.legal_moves_cmd
         }
 
         # used for argument checking
@@ -160,7 +153,7 @@ class GtpConnection():
         self.respond(self.go_engine.name)
 
     def version_cmd(self, args):
-        """ Return the version of the Go engine """
+        """ Return the version of the  Go engine """
         self.respond(self.go_engine.version)
 
     def clear_board_cmd(self, args):
@@ -175,102 +168,44 @@ class GtpConnection():
         self.reset(int(args[0]))
         self.respond()
 
-    """
-    ==========================================================================
-    Assignment 1 - game-specific commands start here
-    ==========================================================================
-    """
+    def showboard_cmd(self, args):
+        self.respond('\n' + self.board2d())
 
-    def gogui_analyze_cmd(self, args):
-        """ We already implemented this function for Assignment 1 """
-        self.respond("pstring/Legal Moves For ToPlay/gogui-rules_legal_moves\n"
-                     "pstring/Side to Play/gogui-rules_side_to_move\n"
-                     "pstring/Final Result/gogui-rules_final_result\n"
-                     "pstring/Board Size/gogui-rules_board_size\n"
-                     "pstring/Rules GameID/gogui-rules_game_id\n"
-                     "pstring/Show Board/gogui-rules_board\n"
-                     )
-
-    def gogui_rules_game_id_cmd(self, args):
-        """ We already implemented this function for Assignment 1 """
-        self.respond("NoGo")
-
-    def gogui_rules_board_size_cmd(self, args):
-        """ We already implemented this function for Assignment 1 """
-        self.respond(str(self.board.size))
-
-    def gogui_rules_legal_moves_cmd(self, args):
-        """ Implement this function for Assignment 1 """
+    def komi_cmd(self, args):
+        """
+        Set the engine's komi to args[0]
+        """
+        self.go_engine.komi = float(args[0])
         self.respond()
-        return
 
-    def gogui_rules_side_to_move_cmd(self, args):
-        """ We already implemented this function for Assignment 1 """
-        color = "black" if self.board.current_player == BLACK else "white"
-        self.respond(color)
-
-    def gogui_rules_board_cmd(self, args):
-        """ We already implemented this function for Assignment 1 """
-        size = self.board.size
-        str = ''
-        for row in range(size-1, -1, -1):
-            start = self.board.row_start(row + 1)
-            for i in range(size):
-                #str += '.'
-                point = self.board.board[start + i]
-                if point == BLACK:
-                    str += 'X'
-                elif point == WHITE:
-                    str += 'O'
-                elif point == EMPTY:
-                    str += '.'
-                else:
-                    assert False
-            str += '\n'
-        self.respond(str)
-            
-    def gogui_rules_final_result_cmd(self, args):
-        """ Implement this function for Assignment 1 """
-        self.respond("unknown")
-
-    def __wrongColorErr(self, args):
-        boardColor = args[0].lower()
-        if boardColor != "b" and boardColor != 'w':
-            response = "illegal Move:", args[0], "wrong color."
-            self.respond(response)
-            return True
+    def known_command_cmd(self, args):
+        """
+        Check if command args[0] is known to the GTP interface
+        """
+        if args[0] in self.commands:
+            self.respond("true")
         else:
-            return False
+            self.respond("false")
 
-    def __wrongCoordErr(self, args):
-        coords = args[1]
+    def list_commands_cmd(self, args):
+        """ list all supported GTP commands """
+        self.respond(' '.join(list(self.commands.keys())))
 
-        
-        pass
-    def __occupiedErr(self):
-        pass
-    def __captureErr(self):
-        pass
-    def __suicideErr(self):
-        pass
-
-    def play_cmd_rewriting(self, args):
-        
-        try:
-            
-            board_color = args[0].lower()
-            
-
-            board_move = args[1]
-
-
+    def legal_moves_cmd(self, args):
+        """
+        List legal moves for color args[0] in {'b','w'}
+        """
+        board_color = args[0].lower()
+        color = color_to_int(board_color)
+        moves = GoBoardUtil.generate_legal_moves(self.board, color)
+        gtp_moves = []
+        for move in moves:
+            coords = point_to_coord(move, self.board.size)
+            gtp_moves.append(format_point(coords))
+        sorted_moves = ' '.join(sorted(gtp_moves))
+        self.respond(sorted_moves)
 
     def play_cmd(self, args):
-        # check in order, output first error only: 
-        # Wrong color, wrong coordinate, occupied, capture, suicide
-        # errors in form "illegal move:"copy of the input argument(s) reason"
-
-        """ Modify this function for Assignment 1 """
         """
         play a move args[1] for given color args[0] in {'b','w'}
         """
@@ -301,7 +236,6 @@ class GtpConnection():
             self.respond('Error: {}'.format(str(e)))
 
     def genmove_cmd(self, args):
-        """ Modify this function for Assignment 1 """
         """ generate a move for color args[0] in {'b','w'} """
         board_color = args[0].lower()
         color = color_to_int(board_color)
@@ -313,52 +247,6 @@ class GtpConnection():
             self.respond(move_as_string)
         else:
             self.respond("Illegal move: {}".format(move_as_string))
-
-    """
-    ==========================================================================
-    Assignment 1 - game-specific commands end here
-    ==========================================================================
-    """
-
-    def showboard_cmd(self, args):
-        self.respond('\n' + self.board2d())
-
-    def komi_cmd(self, args):
-        """
-        Set the engine's komi to args[0]
-        """
-        self.go_engine.komi = float(args[0])
-        self.respond()
-
-    def known_command_cmd(self, args):
-        """
-        Check if command args[0] is known to the GTP interface
-        """
-        if args[0] in self.commands:
-            self.respond("true")
-        else:
-            self.respond("false")
-
-    def list_commands_cmd(self, args):
-        """ list all supported GTP commands """
-        self.respond(' '.join(list(self.commands.keys())))
-
-    """ Assignment 1: ignore this command, implement 
-        gogui_rules_legal_moves_cmd  above instead """
-    def legal_moves_cmd(self, args):
-        """
-        List legal moves for color args[0] in {'b','w'}
-        """
-        board_color = args[0].lower()
-        color = color_to_int(board_color)
-        moves = GoBoardUtil.generate_legal_moves(self.board, color)
-        gtp_moves = []
-        for move in moves:
-            coords = point_to_coord(move, self.board.size)
-            gtp_moves.append(format_point(coords))
-        sorted_moves = ' '.join(sorted(gtp_moves))
-        self.respond(sorted_moves)
-
 
 def point_to_coord(point, boardsize):
     """

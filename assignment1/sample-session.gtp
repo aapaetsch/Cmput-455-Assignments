@@ -1,0 +1,9 @@
+boardsize 3
+showboard
+play b a2
+showboard
+play w a1
+showboard
+legal_moves b
+quit
+
