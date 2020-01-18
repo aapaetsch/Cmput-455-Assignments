@@ -259,7 +259,7 @@ class GtpConnection():
     def __suicideErr(self):
         pass
 
-    def play_cmd(self, args):
+    def play_cmd_new(self, args):
         
         try:
             
@@ -280,7 +280,7 @@ class GtpConnection():
 
 
 
-    def play_cmd_original(self, args):
+    def play_cmd(self, args):
         # check in order, output first error only: 
         # Wrong color, wrong coordinate, occupied, capture, suicide
         # errors in form "illegal move:"copy of the input argument(s) reason"
