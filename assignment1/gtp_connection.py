@@ -234,19 +234,24 @@ class GtpConnection():
         self.respond("unknown")
 
     def __wrongColorErr(self, args):
+        
         boardColor = args[0].lower()
         if boardColor != "b" and boardColor != 'w':
-            response = "illegal Move:", args[0], "wrong color."
+            response = "Illegal Move:", args[0], "wrong color."
+            response = " ".join(response)
             self.respond(response)
             return True
         else:
             return False
 
     def __wrongCoordErr(self, args):
-        coords = args[1]
+        move = args[1]
+        print(type(move), move)
+
+        coords = None
 
         
-        pass
+        
     def __occupiedErr(self):
         pass
     def __captureErr(self):
@@ -254,18 +259,28 @@ class GtpConnection():
     def __suicideErr(self):
         pass
 
-    def play_cmd_rewriting(self, args):
+    def play_cmd(self, args):
         
         try:
             
-            board_color = args[0].lower()
-            
+            if self.__wrongColorErr(args):
+                return 
 
+            board_color = args[0].lower()
+            colorAsInt = color_to_int(board_color)
+
+            #no passing as passing is illegal
+
+            if self.__wrongCoordErr(args):
+                return 
             board_move = args[1]
 
+        except:
+            pass
 
 
-    def play_cmd(self, args):
+
+    def play_cmd_original(self, args):
         # check in order, output first error only: 
         # Wrong color, wrong coordinate, occupied, capture, suicide
         # errors in form "illegal move:"copy of the input argument(s) reason"
@@ -370,7 +385,7 @@ def point_to_coord(point, boardsize):
         return PASS
     else:
         NS = boardsize + 1
-        return divmod(point, NS)
+        return divmod(point, NS)  
 
 def format_point(move):
     """
