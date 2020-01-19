@@ -300,13 +300,6 @@ class GtpConnection():
         else:
             return False
 
-
-
-
-
-    def __suicideErr(self):
-        pass
-
     def play_cmd(self, args):
         
         try:
