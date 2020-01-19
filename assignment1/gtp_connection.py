@@ -234,32 +234,80 @@ class GtpConnection():
         self.respond("unknown")
 
     def __wrongColorErr(self, args):
-        
+        # This method checks if the color of the move is b/w or B/W, returns True if it is not. 
         boardColor = args[0].lower()
+        
         if boardColor != "b" and boardColor != 'w':
-            response = "Illegal Move:", args[0], "wrong color."
-            response = " ".join(response)
-            self.respond(response)
+            self.respond("illegal move: {} wrong color.".format(args[0]))
             return True
+        
         else:
             return False
 
     def __wrongCoordErr(self, args):
-        move = args[1]
-        print(type(move), move)
-
-        coords = None
-
+        # This method returns the coords (row, col) if the move is within the board bounds
+        # Returns True if move is error
+        move = str(args[1]).lower()
+        if len(move) < 2:
+            return True
         
+        char_col = args[1][0].lower()
+        row = args[1][1:]
+
+        try:
+            if (not "a" <= char_col <= "z") or char_col == "i":
+                return True
+            
+            col = ord(char_col) - ord("a")
+            if char_col < "i":
+                col += 1
+
+            row = int(row)
+            if row < 1:
+                return True
+        except(IndexError, ValueError):
+            return True
+
+        if not (col <= self.board.size and row <= self.board.size):
+            return True
+
+        return row, col
         
-    def __occupiedErr(self):
-        pass
-    def __captureErr(self):
-        pass
+    def __occupiedErr(self, move):
+        # This method takes in a move (from coord_to_point) and checks if it is in a boards empty points
+        # returns False if move is empty, True if not
+        if move in self.board.get_empty_points():
+            return False
+
+        else:
+            return True
+    
+
+    def __captureErr(self, move, color):
+        # This method takes in a move and its color, checking if it results in a capture
+        # if so, it returns True, else it returns False
+        copyOfBoard = self.board.copy()
+        oppositeColor = 1 if color == 2 else 2
+
+        beforeMoveNeighbors = copyOfBoard.neighbors_of_color(move, oppositeColor)
+        copyOfBoard.play_move(move, color)
+        afterMoveNeighbors = copyOfBoard.neighbors_of_color(move, oppositeColor)
+        
+        #This could be either done by length or by comparing the two arrays directly i believe?
+        if len(beforeMoveNeighbors) != len(afterMoveNeighbors):
+            return True
+
+        else:
+            return False
+
+
+
+
+
     def __suicideErr(self):
         pass
 
-    def play_cmd_new(self, args):
+    def play_cmd(self, args):
         
         try:
             
@@ -270,17 +318,36 @@ class GtpConnection():
             colorAsInt = color_to_int(board_color)
 
             #no passing as passing is illegal
-
-            if self.__wrongCoordErr(args):
+            coords = self.__wrongCoordErr(args)
+            #self.__wrongCoordErr returns True if there is a coord error and the coords otherwise
+            if coords == True:
+                self.respond("illegal move: {} wrong coordinate.".format(args[1].upper()))
                 return 
-            board_move = args[1]
+            
+            else:
+                move = coord_to_point(coords[0], coords[1], self.board.size)
+            
+            if self.__occupiedErr(move):
+                self.respond("illegal move: {} occupied.".format(args[1].upper()))
+                return 
 
-        except:
-            pass
+            if self.__captureErr(move, colorAsInt):
+                self.respond("illegal move: {} {} capture.".format(args[0].upper(), args[1].upper()))
+                return
+
+            #unsure here if i should be doing an additional check for suicide to specify the error
+            #pretty sure that the only remaining error should be suicide. 
+            if not self.board.play_move(move, colorAsInt):
+                self.respond("illegal move: {} {} suicide.".format(args[0].upper(), args[1].upper()))
+                return
+
+
+        except Exception as e:
+            self.respond("Error: {}".format(str(e)))
 
 
 
-    def play_cmd(self, args):
+    def play_cmd_original(self, args):
         # check in order, output first error only: 
         # Wrong color, wrong coordinate, occupied, capture, suicide
         # errors in form "illegal move:"copy of the input argument(s) reason"

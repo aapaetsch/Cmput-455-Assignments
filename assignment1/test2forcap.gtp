@@ -1,0 +1,12 @@
+boardsize 5
+play b b1
+play b a2
+play b c2
+play w b2
+showboard
+play b b3
+showboard
+play b a3
+play b c3
+showboard
+quit
