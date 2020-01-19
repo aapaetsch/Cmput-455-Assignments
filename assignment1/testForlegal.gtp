@@ -1,0 +1,20 @@
+boardsize 3
+gogui-rules_legal_moves
+play b B1
+showboard
+gogui-rules_legal_moves
+play w C3
+sowboard
+gogui-rules_legal_moves
+play b A2
+gogui-rules_legal_moves
+play w B3
+showboard
+gogui-rules_legal_moves
+gogui-rules_legal_moves
+play b b3
+showboard
+play b c2
+showboard
+gogui-rules_legal_moves
+quit

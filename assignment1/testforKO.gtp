@@ -12,6 +12,7 @@ play b b4
 play b c4
 play w d4
 showboard
+gogui-rules_legal_moves
 play b d3
 showboard
 quit

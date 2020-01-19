@@ -3,8 +3,10 @@ play b b1
 play b a2
 play b c2
 play w b2
+gogui-rules_legal_moves
 showboard
 play b b3
+gogui-rules_legal_moves
 showboard
 play b a3
 play b c3

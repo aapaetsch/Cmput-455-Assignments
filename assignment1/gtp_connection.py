@@ -199,9 +199,27 @@ class GtpConnection():
         """ We already implemented this function for Assignment 1 """
         self.respond(str(self.board.size))
 
+    def __checkSuicide(self, move):
+        boardCopy = self.board.copy()
+        boardCopy.play_move(move, )
     def gogui_rules_legal_moves_cmd(self, args):
         """ Implement this function for Assignment 1 """
-        self.respond()
+        #Pretty sure I can ignore args
+
+        currentPlayer = self.board.current_player
+        emptyPoints = self.board.get_empty_points()
+        print("Current Player:", currentPlayer)
+
+        legalMoves = []
+        for point in emptyPoints:
+            if not self.__captureErr(point, currentPlayer):
+                if self.board.is_legal(point, currentPlayer):
+                    legalMoves.append(format_point(point_to_coord(point, self.board.size)))
+        sorted(legalMoves, key=0)
+
+
+
+        self.respond(legalMoves)
         return
 
     def gogui_rules_side_to_move_cmd(self, args):
@@ -281,7 +299,6 @@ class GtpConnection():
 
         else:
             return True
-    
 
     def __captureErr(self, move, color):
         # This method takes in a move and its color, checking if it results in a capture
@@ -337,8 +354,6 @@ class GtpConnection():
 
         except Exception as e:
             self.respond("Error: {}".format(str(e)))
-
-
 
     def play_cmd_original(self, args):
         # check in order, output first error only: 
