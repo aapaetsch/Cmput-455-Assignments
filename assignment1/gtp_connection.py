@@ -215,8 +215,8 @@ class GtpConnection():
             if not self.__captureErr(point, currentPlayer):
                 if self.board.is_legal(point, currentPlayer):
                     legalMoves.append(format_point(point_to_coord(point, self.board.size)))
-        sorted(legalMoves, key=0)
-
+        
+        legalMoves.sort(key=lambda x: x[0])
 
 
         self.respond(legalMoves)
