@@ -199,9 +199,8 @@ class GtpConnection():
         """ We already implemented this function for Assignment 1 """
         self.respond(str(self.board.size))
 
-    def __checkSuicide(self, move):
-        boardCopy = self.board.copy()
-        boardCopy.play_move(move, )
+  
+
     def gogui_rules_legal_moves_cmd(self, args):
         """ Implement this function for Assignment 1 """
         #Pretty sure I can ignore args
