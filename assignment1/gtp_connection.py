@@ -249,6 +249,16 @@ class GtpConnection():
             
     def gogui_rules_final_result_cmd(self, args):
         """ Implement this function for Assignment 1 """
+        for item in args:
+        board_color = item.lower()
+        color = color_to_int(board_color)
+        moves = GoBoardUtil.generate_legal_moves(self.board, color)
+        if moves == []:
+            if board_color == "b":
+                self.repsond("white")
+            else:
+                self.respond("black")
+            
         self.respond("unknown")
 
     def __wrongColorErr(self, args):
