@@ -248,17 +248,20 @@ class GtpConnection():
             
     def gogui_rules_final_result_cmd(self, args):
         """ Implement this function for Assignment 1 """
-        c = ['b','w']
-        for item in c:
-            board_color = item.lower()
-            color = color_to_int(board_color)
-            moves = GoBoardUtil.generate_legal_moves(self.board, color)
-            print("Moves here", moves)
-            if len(moves) == 0:
-                if board_color == "b":
-                    self.respond("white")
-                else:
-                    self.respond("black")
+        currentPlayer = self.board.current_player
+        emptyPoints = self.board.get_empty_points()
+        legalMoves = []
+        for point in emptyPoints:
+            if not self.__captureErr(point, currentPlayer):
+                if self.board.is_legal(point, currentPlayer):
+                    legalMoves.append(format_point(point_to_coord(point, self.board.size)))
+        
+    
+        if len(moves) == 0:
+            if board_color == "b":
+                self.respond("white")
+            else:
+                self.respond("black")
         
             
         self.respond("unknown")
