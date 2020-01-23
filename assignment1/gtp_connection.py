@@ -249,14 +249,14 @@ class GtpConnection():
     def gogui_rules_final_result_cmd(self, args):
         """ Implement this function for Assignment 1 """
         for item in args:
-        board_color = item.lower()
-        color = color_to_int(board_color)
-        moves = GoBoardUtil.generate_legal_moves(self.board, color)
-        if moves == []:
-            if board_color == "b":
-                self.repsond("white")
-            else:
-                self.respond("black")
+            board_color = item.lower()
+            color = color_to_int(board_color)
+            moves = GoBoardUtil.generate_legal_moves(self.board, color)
+            if moves == []:
+                if board_color == "b":
+                    self.repsond("white")
+                else:
+                    self.respond("black")
             
         self.respond("unknown")
 
@@ -337,7 +337,7 @@ class GtpConnection():
             colorAsInt = color_to_int(board_color)
 
             #no passing as passing is illegal
-            coords = sel f.__wrongCoordErr(args)
+            coords = self.__wrongCoordErr(args)
             #self.__wrongCoordErr returns True if there is a coord error and the coords otherwise
             if coords == True:
                 self.respond("illegal move: {} wrong coordinate.".format(args[1].upper()))
