@@ -1,0 +1,11 @@
+boardsize 3
+play b b1
+play w a1
+play b a3
+play w a2
+play b b3
+play w b2
+showboard
+gogui-rules_legal_moves
+gogui-rules_final_result
+quit
