@@ -337,7 +337,7 @@ class GtpConnection():
             colorAsInt = color_to_int(board_color)
 
             #no passing as passing is illegal
-            coords = self.__wrongCoordErr(args)
+            coords = sel f.__wrongCoordErr(args)
             #self.__wrongCoordErr returns True if there is a coord error and the coords otherwise
             if coords == True:
                 self.respond("illegal move: {} wrong coordinate.".format(args[1].upper()))
