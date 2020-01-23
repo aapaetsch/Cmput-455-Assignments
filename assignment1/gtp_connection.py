@@ -199,9 +199,8 @@ class GtpConnection():
         """ We already implemented this function for Assignment 1 """
         self.respond(str(self.board.size))
 
-    def __checkSuicide(self, move):
-        boardCopy = self.board.copy()
-        boardCopy.play_move(move, )
+  
+
     def gogui_rules_legal_moves_cmd(self, args):
         """ Implement this function for Assignment 1 """
         #Pretty sure I can ignore args
@@ -215,8 +214,8 @@ class GtpConnection():
             if not self.__captureErr(point, currentPlayer):
                 if self.board.is_legal(point, currentPlayer):
                     legalMoves.append(format_point(point_to_coord(point, self.board.size)))
-        sorted(legalMoves, key=0)
-
+        
+        legalMoves.sort(key=lambda x: x[0])
 
 
         self.respond(legalMoves)
