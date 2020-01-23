@@ -12,6 +12,7 @@ from board_util import GoBoardUtil, BLACK, WHITE, EMPTY, BORDER, PASS, \
                        MAXSIZE, coord_to_point
 import numpy as np
 import re
+from random import choice
 
 class GtpConnection():
 
@@ -257,11 +258,10 @@ class GtpConnection():
                     legalMoves.append(format_point(point_to_coord(point, self.board.size)))
         
     
-        if len(moves) == 0:
-            if board_color == "b":
-                self.respond("white")
-            else:
-                self.respond("black")
+        if len(legalMoves) == 0:
+            winner = 'black' if self.board.current_player == 1 else 'white'
+            self.respond(winner)
+            return 
         
             
         self.respond("unknown")
@@ -370,55 +370,47 @@ class GtpConnection():
         except Exception as e:
             self.respond("Error: {}".format(str(e)))
 
-    def play_cmd_original(self, args):
-        # check in order, output first error only: 
-        # Wrong color, wrong coordinate, occupied, capture, suicide
-        # errors in form "illegal move:"copy of the input argument(s) reason"
-
-        """ Modify this function for Assignment 1 """
-        """
-        play a move args[1] for given color args[0] in {'b','w'}
-        """
-        try:
-            board_color = args[0].lower()
-            board_move = args[1]
-            color = color_to_int(board_color)
-            if args[1].lower() == 'pass':
-                self.board.play_move(PASS, color)
-                self.board.current_player = GoBoardUtil.opponent(color)
-                self.respond()
-                return
-            coord = move_to_coord(args[1], self.board.size)
-            if coord:
-                move = coord_to_point(coord[0],coord[1], self.board.size)
-            else:
-                self.error("Error executing move {} converted from {}"
-                           .format(move, args[1]))
-                return
-            if not self.board.play_move(move, color):
-                self.respond("Illegal Move: {}".format(board_move))
-                return
-            else:
-                self.debug_msg("Move: {}\nBoard:\n{}\n".
-                                format(board_move, self.board2d()))
-            self.respond()
-        except Exception as e:
-            self.respond('Error: {}'.format(str(e)))
+    # def genmove_cmd(self, args):
+    #     """ Modify this function for Assignment 1 """
+    #     """ generate a move for color args[0] in {'b','w'} """
+    #     board_color = args[0].lower()
+    #     color = color_to_int(board_color)
+    #     move = self.go_engine.get_move(self.board, color)
+    #     move_coord = point_to_coord(move, self.board.size)
+    #     move_as_string = format_point(move_coord)
+    #     if self.board.is_legal(move, color):
+    #         self.board.play_move(move, color)
+    #         self.respond(move_as_string)
+    #     else:
+    #         self.respond("Illegal move: {}".format(move_as_string))
 
     def genmove_cmd(self, args):
-        """ Modify this function for Assignment 1 """
-        """ generate a move for color args[0] in {'b','w'} """
         board_color = args[0].lower()
         color = color_to_int(board_color)
-        move = self.go_engine.get_move(self.board, color)
-        move_coord = point_to_coord(move, self.board.size)
-        move_as_string = format_point(move_coord)
-        if self.board.is_legal(move, color):
-            self.board.play_move(move, color)
-            self.respond(move_as_string)
-        else:
-            self.respond("Illegal move: {}".format(move_as_string))
+        emptyPoints = self.board.get_empty_points()
 
+        legalMoves = []
+        for point in emptyPoints:
+            if not self.__captureErr(point, color):
+                if self.board.is_legal(point, color):
+                    legalMoves.append(point)
+    
+        if len(legalMoves) > 0: 
+            move = choice(legalMoves)
+
+            move_coord = point_to_coord(move, self.board.size)
+            self.board.play_move(move, color)
+            self.respond(format_point(move_coord))
+            return
+        else:
+            self.respond("illegal move: {}".format(legalMoves))
+
+        
+
+
+        
+
+        
     """
     ==========================================================================
     Assignment 1 - game-specific commands end here
