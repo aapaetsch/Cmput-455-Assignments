@@ -4,36 +4,52 @@
 boardsize 3
 clear_board
 
+00 play b pass
+#? [illegal move: "b pass" wrong coordinate]
+
 play b a3
-10 legal_moves w
+10 gogui-rules_legal_moves
 #? [A1 A2 B1 B2 B3 C1 C2 C3]
 
 play w b3
-20 legal_moves b
+20 gogui-rules_legal_moves
 #? [A1 A2 B1 B2 C1 C2 C3]
 # So far, all empty points are legal in NoGo rules.
 
 play b c3
-30 legal_moves w
+30 gogui-rules_legal_moves
 #? [A1 B1 B2 C1]
 # a2 and c2 are captures, illegal in NoGo.
 
 play w b2
-40 legal_moves b
+40 gogui-rules_legal_moves
 #? [A1 A2 B1 C1 C2]
 # For Black, all empty points are still legal in NoGo rules.
 
 play b c2
-50 legal_moves w
+50 gogui-rules_legal_moves
 #? [A1 B1]
 # a2 and c32 are captures.
 
 play w a1
-60 legal_moves b
+60 gogui-rules_legal_moves
 #? [B1 C1]
 # Now a2 is suicide for black
 
+70 gogui-rules_final_result
+#? [unknown]
+# Black can still make a move.
+
 play b c1
-70 legal_moves w
+80 play w a2
+#? [illegal move: "w a2" capture]
+
+90 gogui-rules_legal_moves
 #? []
 # Both moves are captures, illegal in NoGo. Game over, Black wins.
+
+100 genmove w
+#? [resign]
+
+110 gogui-rules_final_result
+#? [black]
