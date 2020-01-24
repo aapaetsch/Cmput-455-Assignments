@@ -337,6 +337,7 @@ class GtpConnection():
         try:
             
             if self.__wrongColorErr(args):
+                self.respond("illegal move: {} wrong color.".format(args[1].upper()))
                 return 
 
             board_color = args[0].lower()
@@ -366,7 +367,7 @@ class GtpConnection():
                 self.respond("illegal move: {} {} suicide.".format(args[0].upper(), args[1].upper()))
                 return
 
-
+            self.respond()
         except Exception as e:
             self.respond("Error: {}".format(str(e)))
 
