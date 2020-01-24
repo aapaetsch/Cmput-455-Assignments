@@ -402,7 +402,7 @@ class GtpConnection():
             self.respond(format_point(move_coord))
             return
         else:
-            self.respond("illegal move: {}".format(legalMoves))
+            self.respond("resign")
 
         
 
