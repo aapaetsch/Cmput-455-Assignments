@@ -208,8 +208,7 @@ class GtpConnection():
 
         currentPlayer = self.board.current_player
         emptyPoints = self.board.get_empty_points()
-        print("Current Player:", currentPlayer)
-
+        
         legalMoves = []
         for point in emptyPoints:
             if not self.__captureErr(point, currentPlayer):
@@ -219,7 +218,7 @@ class GtpConnection():
         legalMoves.sort(key=lambda x: x[0])
 
 
-        self.respond(legalMoves)
+        self.respond(' '.join(legalMoves))
         return
 
     def gogui_rules_side_to_move_cmd(self, args):

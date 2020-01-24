@@ -1,9 +1,6 @@
 boardsize 3
-showboard
-play b a2
-showboard
-play w a1
-showboard
-legal_moves b
-quit
+clear_board
 
+play b a3
+10 legal_moves w
+showboard
