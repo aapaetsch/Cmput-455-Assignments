@@ -259,7 +259,7 @@ class GtpConnection():
         
     
         if len(legalMoves) == 0:
-            winner = 'black' if self.board.current_player == 1 else 'white'
+            winner = 'white' if self.board.current_player == 1 else 'black'
             self.respond(winner)
             return 
         
