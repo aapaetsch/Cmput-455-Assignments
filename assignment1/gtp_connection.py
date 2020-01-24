@@ -270,7 +270,6 @@ class GtpConnection():
         boardColor = args[0].lower()
         
         if boardColor != "b" and boardColor != 'w':
-            self.respond("illegal move: {} wrong color.".format(args[0]))
             return True
         
         else:
@@ -336,7 +335,7 @@ class GtpConnection():
         try:
             
             if self.__wrongColorErr(args):
-                self.respond("illegal move: {} wrong color.".format(args[1].upper()))
+                self.respond('illegal move: "{} {}" wrong color'.format(args[0], args[1]))
                 return 
 
             board_color = args[0].lower()
@@ -346,24 +345,24 @@ class GtpConnection():
             coords = self.__wrongCoordErr(args)
             #self.__wrongCoordErr returns True if there is a coord error and the coords otherwise
             if coords == True:
-                self.respond("illegal move: {} wrong coordinate.".format(args[1].upper()))
+                self.respond('illegal move: "{} {}" wrong coordinate'.format(args[0],args[1]))
                 return 
             
             else:
                 move = coord_to_point(coords[0], coords[1], self.board.size)
             
             if self.__occupiedErr(move):
-                self.respond("illegal move: {} occupied.".format(args[1].upper()))
+                self.respond('illegal move: "{} {}" occupied'.format(args[0],args[1]))
                 return 
 
             if self.__captureErr(move, colorAsInt):
-                self.respond("illegal move: {} {} capture.".format(args[0].upper(), args[1].upper()))
+                self.respond('illegal move: "{} {}" capture'.format(args[0], args[1]))
                 return
 
             #unsure here if i should be doing an additional check for suicide to specify the error
             #pretty sure that the only remaining error should be suicide. 
             if not self.board.play_move(move, colorAsInt):
-                self.respond("illegal move: {} {} suicide.".format(args[0].upper(), args[1].upper()))
+                self.respond('illegal move: "{} {}" suicide'.format(args[0], args[1]))
                 return
 
             self.respond()
