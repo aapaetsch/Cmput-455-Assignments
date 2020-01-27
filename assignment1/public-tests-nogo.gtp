@@ -32,7 +32,7 @@ play b c2
 # a2 and c32 are captures.
 
 play w a1
-60 gogui-rules_legal_moves
+60 gogui-rules_legal_moves 
 #? [B1 C1]
 # Now a2 is suicide for black
 
