@@ -1,0 +1,24 @@
+Script started on Mon 27 Jan 2020 02:47:15 PM MST
+paetsch@ohaton:~/Documents/Cmput-455-Assignments>cp assignment1.tgz Test/
+paetsch@ohaton:~/Documents/Cmput-455-Assignments>cd Test
+paetsch@ohaton:~/Documents/Cmput-455-Assignments/Test>ls
+assignment1.tgz
+paetsch@ohaton:~/Documents/Cmput-455-Assignments/Test>tar -xzvf assignment1.tgz 
+assignment1/
+assignment1/readme.txt
+assignment1/simple_board.py
+assignment1/board_util.py
+assignment1/gtp_connection.py
+assignment1/assignment1.tgz
+assignment1/public-tests-nogo.gtp
+assignment1/Go0.py
+paetsch@ohaton:~/Documents/Cmput-455-Assignments/Test>ls
+assignment1  assignment1.tgz
+paetsch@ohaton:~/Documents/Cmput-455-Assignments/Test>cd assignment1
+paetsch@ohaton:~/Documents/Cmput-455-Assignments/Test/assignment1>ls
+Go0.py	assignment1.tgz  board_util.py	gtp_connection.py  public-tests-nogo.gtp  readme.txt  simple_board.py
+paetsch@ohaton:~/Documents/Cmput-455-Assignments/Test/assignment1>gogui-regress Go0.py public-tests-nogo.gtp 
+paetsch@ohaton:~/Documents/Cmput-455-Assignments/Test/assignment1>exit
+exit
+
+Script done on Mon 27 Jan 2020 02:48:49 PM MST
