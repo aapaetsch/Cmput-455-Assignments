@@ -358,70 +358,43 @@ class GtpConnection():
     def time_limit_cmd(self, args):
         assert 1 <= int(args[0]) <= 100
         self.time_limit = int(args[0])
-       
-    # def solve_cmd(self, args):
-    #     self.originalPlayer = self.board.current_player
-    #     flag = False
-    #     rootState = self.board.copy()
-    #     remainingMoves = GoBoardUtil.generate_legal_moves(rootState, self.originalPlayer)
 
-    #     if self.isTerminal(remainingMoves):
-    #         self.respond('b' if self.originalPlayer == WHITE else 'w')
-
-    #     else:
-    #         for move in remainingMoves:
-                
-    #             rootState.play_move(move, self.originalPlayer)
-    #             isWin = self.negamax_boolean(rootState)
-
-    #             if isWin:
-    #                 winningColor = 'b' if self.originalPlayer == BLACK else 'w'
-    #                 winningMove = format_point( point_to_coord(move, self.board.size) )
-    #                 self.respond('{} {}'.format(winningColor, winningMove.lower()))
-    #                 flag = True
-
-    #             rootState.undo(move)
-
-    #     if not flag:
-    #         self.respond('b' if self.originalPlayer == WHITE else 'w')
     def solve_cmd(self, args):
         
         winningMoveFound =  False
         self.originalPlayer = self.board.current_player
         rootState = self.board.copy()
-        remainingMoves = GoBoardUtil.generate_legal_moves(rootState, self.originalPlayer)
+        
         
         #<---init for transposition table--->
         self.maxSize = self.board.size * self.board.size
         self.zobrist_init(rootState) #<---self.hash is created in here
         self.tt = TT()
 
-        
+        remainingMoves = GoBoardUtil.generate_legal_moves(rootState, self.originalPlayer)
         if self.isTerminal(remainingMoves):
             #<---If a move is terminal right away, we assume we are in P-Position--->
             self.respond('b' if self.originalPlayer == WHITE else 'w')
 
         else:
+
             for move in remainingMoves:
                 rootState.play_move(move, self.originalPlayer)
                 
                 #<---Update the current hash value (prevents having to recalculate it)--->
                 p = self.getP(move)
                 self.updateHash(self.hash, self.zobristArray[p][self.originalPlayer], self.zobristArray[p][0])
-                #<---Check if exists in TT--->
-                result = self.tt.lookup(self.hash)
-                if result!= None:
-                    isWin = result
-                else:
+               
+                
                     #<---Call minmax algorithm--->
-                    isWin = self.minmax_bool_and(rootState)
+                isWin = self.minmax_bool_and(rootState)
 
                 if isWin:
                     winningColor = 'b' if self.originalPlayer == BLACK else 'w'
                     winningMove = format_point( point_to_coord(move, self.board.size) )
                     self.respond('{} {}'.format(winningColor, winningMove.lower()))
                     winningMoveFound = True
-
+                    return
                 rootState.undo(move)
                 self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][self.originalPlayer])
         
@@ -453,7 +426,6 @@ class GtpConnection():
             #<---call minmax AND node--->
             isWin = self.minmax_bool_and(gameState)
         
-            
             #<---Revert the hash and gameState back to the previous value--->
             gameState.undo(move)
             self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][currentPlayer])
@@ -499,6 +471,7 @@ class GtpConnection():
         return result
 
     def getP(self,move):
+        #<---takes a move and turns it into p without borders--->
         coord = point_to_coord(move, self.board.size)
         return (coord[1]-1)+(coord[0]-1)*self.board.size
 
@@ -509,15 +482,16 @@ class GtpConnection():
         # This method creates self.hash and self.zobristArray
         # prepares them for use
 
+        #<--- populate the zobrist array with 3 random numbers per board space (3 possible states 0, 1, 2)--->
         self.zobristArray = []
-        for i in range(self.maxSize):
-            self.zobristArray.append([random.getrandbits(128) for i in range(3)])
-        
+        for _ in range(self.maxSize):
+            self.zobristArray.append([random.getrandbits(64) for _ in range(3)])
+
+        #<---Calculate the initial hash value of the board (ignores borders)--->
         self.hash = 0 
         count = 0 
         for point in gameState.board:
             if point != BORDER:
-              
                 self.hash = self.hash ^ self.zobristArray[count][point]
                 count += 1
 
