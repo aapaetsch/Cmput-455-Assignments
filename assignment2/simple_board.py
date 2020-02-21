@@ -17,13 +17,9 @@ from board_util import GoBoardUtil, BLACK, WHITE, EMPTY, BORDER, \
 class SimpleGoBoard(object):
 
     def undo(self, move):
-        self.board[move] = 0 
-
-    def code(self):
-        c = 0 
-        for point in range(len(self.board)):
-            c = 3*c + self.board[point]
-        return c
+        self.board[move] = EMPTY
+        cp = self.current_player
+        self.current_player = BLACK if cp == WHITE else WHITE
 
     def get_color(self, point):
         return self.board[point]
