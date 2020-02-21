@@ -12,6 +12,14 @@ from board_util import GoBoardUtil, BLACK, WHITE, EMPTY, BORDER, PASS, \
                        MAXSIZE, coord_to_point
 import numpy as np
 import re
+import time
+import signal
+from TranspositionTable import TT
+
+# def handler(signum, frame):
+#     raise Exception
+# signal.signal(signal.SIGALRM, handler)
+
 
 class GtpConnection():
 
@@ -30,6 +38,7 @@ class GtpConnection():
         self.go_engine = go_engine
         self.board = board
         self.time_limit = 1
+        self.originalPlayer = None
         self.commands = {
             "protocol_version": self.protocol_version_cmd,
             "quit": self.quit_cmd,
@@ -51,7 +60,8 @@ class GtpConnection():
             "gogui-rules_board": self.gogui_rules_board_cmd,
             "gogui-rules_final_result": self.gogui_rules_final_result_cmd,
             "gogui-analyze_commands": self.gogui_analyze_cmd,
-            "timelimit": self.time_limit_cmd
+            "timelimit": self.time_limit_cmd,
+            "solve": self.solve_cmd
         }
 
         # used for argument checking
@@ -63,7 +73,8 @@ class GtpConnection():
             "known_command": (1, 'Usage: known_command CMD_NAME'),
             "genmove": (1, 'Usage: genmove {w,b}'),
             "play": (2, 'Usage: play {b,w} MOVE'),
-            "legal_moves": (1, 'Usage: legal_moves {w,b}')
+            "legal_moves": (1, 'Usage: legal_moves {w,b}'),
+            "timelimit":(1, "Usage: timelimit INT")
         }
     
     def write(self, data):
@@ -280,8 +291,7 @@ class GtpConnection():
         sorted_moves = ' '.join(sorted(gtp_moves))
         self.respond(sorted_moves)
 
-    def time_limit_cmd(self):
-        pass
+    
 
     def gogui_rules_legal_moves_cmd(self, args):
         empties = self.board.get_empty_points()
@@ -341,6 +351,99 @@ class GtpConnection():
                      "pstring/Rules GameID/gogui-rules_game_id\n"
                      "pstring/Show Board/gogui-rules_board\n"
                      )
+
+
+
+    def time_limit_cmd(self, args):
+        assert 1 <= int(args[0]) <= 100
+        self.time_limit = int(args[0])
+       
+
+
+
+    # def solve_cmd(self, args):
+    #     # signal.alarm(self.time_limit)
+    #     p = self.board.current_player
+    #     self.originalPlayer = p
+    #     result = self.alpha_Beta(self.board.copy(), -float("Inf"), float("Inf"))
+    #     coords = point_to_coord(self.winning[0],self.board.size)
+    #     move = format_point(coords)
+    #     player = 'b' if p == 1 else 'w'
+    #     if result == -1:
+    #         print(player, move)
+
+        
+    #     # signal.alarm(0)
+    #     return
+    def solve_cmd(self, args):
+        self.originalPlayer = self.board.current_player
+        rootState = self.board.copy()
+        remainingMoves = GoBoardUtil.generate_legal_moves(rootState, self.originalPlayer)
+        tt = TT()
+        if self.isTerminal(remainingMoves):
+            self.respond('b' if self.originalPlayer == 2 else 'w')
+
+        else:
+            for move in remainingMoves:
+                rootState.play_move(move, self.originalPlayer)
+                isWin = self.negamax_boolean(rootState, tt)
+                if  isWin:
+                    #the current player wins with this move, end here
+                    print(self.originalPlayer)
+                    winningColor = 'b' if self.originalPlayer == 1 else 'w'
+                    winningMove = format_point(point_to_coord(move, self.board.size))
+                    self.respond('{} {}'.format(winningColor, winningMove))
+                    return 
+                rootState.undo(move)
+            #otherwise the opponent wins
+            self.respond('b' if self.originalPlayer == 2 else 'w')
+       
+
+        
+    def negamax_boolean(self, gameState, tt):
+        # result = tt.lookup(gameState.code())
+        # if result != None:
+        #     return result
+        
+        currentPlayer = gameState.current_player
+        remainingMoves = GoBoardUtil.generate_legal_moves(gameState, currentPlayer)
+        
+        if self.isTerminal(remainingMoves):
+            return self.storeResult(tt, gameState, self.evaluation(currentPlayer))
+
+        for move in remainingMoves:
+            gameState.play_move(move, currentPlayer)
+            value = not self.negamax_boolean(gameState, tt)
+            gameState.undo(move)
+
+            if value:
+                return self.storeResult(tt, gameState, True)
+        
+        return self.storeResult(tt, gameState, False)
+
+
+    def storeResult(self, tt, gameState, result):
+        # This method stores a gamestate and its result in the transposition table, returns the result
+        tt.store(gameState.code(), result)
+        return result
+
+
+    
+    def evaluation(self, currentPlayer):
+        #This method returns true if player ToPlay played the winning move
+        if self.originalPlayer == currentPlayer:
+            return False
+        else:
+            return True
+        
+
+    def isTerminal(self, remainingMoves):
+        # This method returns true if the game is in a terminal state
+        if len(remainingMoves) == 0:
+            return True
+        else:
+            return False
+
 
 def point_to_coord(point, boardsize):
     """
