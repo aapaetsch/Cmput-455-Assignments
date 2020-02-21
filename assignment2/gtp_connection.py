@@ -16,10 +16,17 @@ import time
 import random
 import signal
 from TranspositionTable import TT
+alarmTime = 0
 
-# def handler(signum, frame):
-#     raise Exception
-# signal.signal(signal.SIGALRM, handler)
+
+class TimeException(Exception):
+    pass
+
+def handler(signum, frame):
+    alarmTIME = time.time()
+    raise TimeException
+
+signal.signal(signal.SIGALRM, handler)
 
 
 class GtpConnection():
@@ -360,46 +367,61 @@ class GtpConnection():
         self.time_limit = int(args[0])
 
     def solve_cmd(self, args):
-        
-        winningMoveFound =  False
+        signal.alarm(self.time_limit)
+        # winningMoveFound =  False
         self.originalPlayer = self.board.current_player
         rootState = self.board.copy()
         
-        
-        #<---init for transposition table--->
-        self.maxSize = self.board.size * self.board.size
-        self.zobrist_init(rootState) #<---self.hash is created in here
-        self.tt = TT()
+        try:
+            rootTime = time.time()
+            #<---init for transposition table--->
+            self.maxSize = self.board.size * self.board.size
+            self.zobrist_init(rootState) #<---self.hash is created in here
+            self.tt = TT()
+            stop = time.time()
+            print('Transposition Table setup:', stop-rootTime)
 
-        remainingMoves = GoBoardUtil.generate_legal_moves(rootState, self.originalPlayer)
-        if self.isTerminal(remainingMoves):
-            #<---If a move is terminal right away, we assume we are in P-Position--->
-            self.respond('b' if self.originalPlayer == WHITE else 'w')
+            remainingMoves = GoBoardUtil.generate_legal_moves(rootState, self.originalPlayer)
+            if self.isTerminal(remainingMoves):
+                #<---If a move is terminal right away, we assume we are in P-Position--->
+                self.respond('b' if self.originalPlayer == WHITE else 'w')
 
-        else:
+            else:
 
-            for move in remainingMoves:
-                rootState.play_move(move, self.originalPlayer)
-                
-                #<---Update the current hash value (prevents having to recalculate it)--->
-                p = self.getP(move)
-                self.updateHash(self.hash, self.zobristArray[p][self.originalPlayer], self.zobristArray[p][0])
-               
-                
+                for move in remainingMoves:
+                    start = time.time() #<TIMER
+                    rootState.play_move(move, self.originalPlayer)
+                    
+                    #<---Update the current hash value (prevents having to recalculate it)--->
+                    p = self.getP(move)
+                    self.updateHash(self.hash, self.zobristArray[p][self.originalPlayer], self.zobristArray[p][0])
+                   
+                    
                     #<---Call minmax algorithm--->
-                isWin = self.minmax_bool_and(rootState)
+                    isWin = self.minmax_bool_and(rootState)
 
-                if isWin:
-                    winningColor = 'b' if self.originalPlayer == BLACK else 'w'
-                    winningMove = format_point( point_to_coord(move, self.board.size) )
-                    self.respond('{} {}'.format(winningColor, winningMove.lower()))
-                    winningMoveFound = True
-                    return
-                rootState.undo(move)
-                self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][self.originalPlayer])
-        
-        if not winningMoveFound:
+                    if isWin:
+                        winningColor = 'b' if self.originalPlayer == BLACK else 'w'
+                        winningMove = format_point( point_to_coord(move, self.board.size) )
+                        self.respond('{} {}'.format(winningColor, winningMove.lower()))
+                        # winningMoveFound = True
+                        print('Total time:', time.time() - rootTime)
+                        return
+                    rootState.undo(move)
+                    self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][self.originalPlayer])
+                    stop = time.time()#<TIMER
+                    print("Move:", format_point(point_to_coord(move,self.board.size)), 'Time:', stop-start)
+            # if not winningMoveFound:
             self.respond('b' if self.originalPlayer == WHITE else 'w')
+            print('Total time:', time.time() - rootTime)
+            return
+
+        except:
+            self.respond("unknown")
+            print('total time before exit:', alarmTIME - rootTime)
+        signal.alarm(0)
+        
+
 
 
     #<---Trying to implement an and or version here --->
