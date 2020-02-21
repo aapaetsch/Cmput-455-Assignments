@@ -16,14 +16,11 @@ import time
 import random
 import signal
 from TranspositionTable import TT
-alarmTime = 0
-
 
 class TimeException(Exception):
     pass
 
 def handler(signum, frame):
-    alarmTIME = time.time()
     raise TimeException
 
 signal.signal(signal.SIGALRM, handler)
@@ -418,7 +415,7 @@ class GtpConnection():
 
         except:
             self.respond("unknown")
-            print('total time before exit:', alarmTIME - rootTime)
+            print('total time before exit:', time.time() - rootTime)
         signal.alarm(0)
         
 
