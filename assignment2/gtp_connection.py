@@ -299,8 +299,6 @@ class GtpConnection():
         sorted_moves = ' '.join(sorted(gtp_moves))
         self.respond(sorted_moves)
 
-    
-
     def gogui_rules_legal_moves_cmd(self, args):
         empties = self.board.get_empty_points()
         color = self.board.current_player
@@ -359,8 +357,6 @@ class GtpConnection():
                      "pstring/Rules GameID/gogui-rules_game_id\n"
                      "pstring/Show Board/gogui-rules_board\n"
                      )
-
-
 
     def time_limit_cmd(self, args):
         assert 1 <= int(args[0]) <= 100
@@ -427,11 +423,68 @@ class GtpConnection():
             print('total time before exit:', time.time() - rootTime, 'Timelimit:', self.time_limit)
         signal.alarm(0)
         
+    # def solve_cmd(self, args):
+    #     #<---Solve cmd using ab--->
+    #     # signal.alarm(self.time_limit)
+    #     self.originalPlayer = self.board.current_player
+    #     rootState = self.board.copy()
+    #     self.bestMoves = []
+    
+        
+    #     value = self.alpha_beta(rootState, -float('Inf'), float('Inf'), True)
+
+    #     if len(self.bestMoves) != 0:
+    #         for move in self.bestMoves:
+    #             bestMove = format_point(point_to_coord(move, self.board.size))
+    #             self.respond('{} {}'.format('b' if self.originalPlayer == BLACK else 'w', bestMove))
+    #     else:
+    #         self.respond('{}'.format('b' if self.originalPlayer == WHITE else 'w'))
 
 
+
+
+    # def statistic_eval(self, gameState):
+    #     if gameState.current_player == self.originalPlayer:
+    #         return 0 
+    #     else:
+    #         return 1
+        
+        
+    # def alpha_beta(self, gameState, alpha, beta, top):
+
+        
+    #     remainingMoves = GoBoardUtil.generate_legal_moves(gameState, gameState.current_player)
+    #     remainingMoveCount = len(remainingMoves)
+    
+    #     if self.isTerminal(remainingMoveCount):
+    #         #<---Do evaluation--->
+    #         return self.statistic_eval(gameState)
+
+    #     for move in remainingMoves:
+    #         gameState.skip_checks_play(move, gameState.current_player)
+    #         value = -self.alpha_beta(gameState, -beta, -alpha, False)
+            
+    #         if (value > alpha):
+    #             alpha = value
+    #             if top:
+    #                 self.bestMoves.append(move)
+                    
+    #         gameState.undo(move)
+    #         if (value >= beta):
+    #             return beta
+
+    #     return alpha
+
+
+
+
+
+    # def isTerminal(self, remainingMoveCount):
+    #     if remainingMoveCount == 0 :
+    #         return True
+    #     return False
 
     #<---Trying to implement an and or version here --->
-    
     def minmax_bool_or(self, gameState):
         #<---Check the transposition table if this node has been found --->
         result = self.tt.lookup(self.hash)
@@ -459,9 +512,7 @@ class GtpConnection():
             self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][currentPlayer])
             
             if isWin:
-                self.mirror(gameState, True)
                 return self.storeResult(self.hash, True)
-        self.mirror(gameState, False)
         return self.storeResult(self.hash, False)
 
     def minmax_bool_and(self, gameState):
@@ -491,9 +542,9 @@ class GtpConnection():
             self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][currentPlayer])
 
             if not isWin:
-                self.mirror(gameState, False)
+ 
                 return self.storeResult(self.hash, False)
-        self.mirror(gameState, True)
+
         return self.storeResult(self.hash, True)
 
     def mirror(self, gameState, value):
@@ -547,10 +598,6 @@ class GtpConnection():
         self.storeResult(tempHashH, value)
         self.storeResult(tempHashV, value)
         #<---get Vertical--->
-        
-
-
-
 
     def storeResult(self, newHash, result):
         self.tt.store(newHash, result)
@@ -596,9 +643,9 @@ class GtpConnection():
     def isTerminal(self, remainingMoves):
         if len(remainingMoves) != 0:
             return False
-
         else:
             return True 
+
 
 
 def point_to_coord(point, boardsize):
