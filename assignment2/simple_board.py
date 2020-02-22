@@ -21,6 +21,12 @@ class SimpleGoBoard(object):
         cp = self.current_player
         self.current_player = BLACK if cp == WHITE else WHITE
 
+    def skip_checks_play(self, move, color):
+        self.board[move] = color
+        cp = self.current_player
+        self.current_player = BLACK if cp == WHITE else WHITE
+
+
     def get_color(self, point):
         return self.board[point]
 

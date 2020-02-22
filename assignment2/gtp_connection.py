@@ -371,6 +371,9 @@ class GtpConnection():
         # winningMoveFound =  False
         self.originalPlayer = self.board.current_player
         rootState = self.board.copy()
+        self.pValues = {}
+        for move in range(len(rootState.board)):
+            self.pValues[move] = self.getP(move)
         
         try:
             rootTime = time.time()
@@ -385,15 +388,16 @@ class GtpConnection():
             if self.isTerminal(remainingMoves):
                 #<---If a move is terminal right away, we assume we are in P-Position--->
                 self.respond('b' if self.originalPlayer == WHITE else 'w')
-
+                signal.alarm(0)
             else:
 
                 for move in remainingMoves:
                     start = time.time() #<TIMER
-                    rootState.play_move(move, self.originalPlayer)
+                    rootState.skip_checks_play(move, self.originalPlayer)
+                    self.getIsomorphic = True
                     
                     #<---Update the current hash value (prevents having to recalculate it)--->
-                    p = self.getP(move)
+                    p = self.pValues[move]
                     self.updateHash(self.hash, self.zobristArray[p][self.originalPlayer], self.zobristArray[p][0])
                    
                     
@@ -406,6 +410,7 @@ class GtpConnection():
                         self.respond('{} {}'.format(winningColor, winningMove.lower()))
                         # winningMoveFound = True
                         print('Total time:', time.time() - rootTime)
+                        signal.alarm(0)
                         return
                     rootState.undo(move)
                     self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][self.originalPlayer])
@@ -414,11 +419,12 @@ class GtpConnection():
             # if not winningMoveFound:
             self.respond('b' if self.originalPlayer == WHITE else 'w')
             print('Total time:', time.time() - rootTime)
+            signal.alarm(0)
             return
 
         except:
             self.respond("unknown")
-            print('total time before exit:', alarmTIME - rootTime)
+            print('total time before exit:', time.time() - rootTime, 'Timelimit:', self.time_limit)
         signal.alarm(0)
         
 
@@ -439,10 +445,10 @@ class GtpConnection():
             return self.storeResult(self.hash, self.evaluation(currentPlayer))
 
         for move in remainingMoves:
-            gameState.play_move(move, currentPlayer)
+            gameState.skip_checks_play(move, currentPlayer)
 
             #<-- updating the hash value --->
-            p = self.getP(move)
+            p = self.pValues[move]
             self.updateHash(self.hash, self.zobristArray[p][currentPlayer], self.zobristArray[p][0])
 
             #<---call minmax AND node--->
@@ -453,8 +459,9 @@ class GtpConnection():
             self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][currentPlayer])
             
             if isWin:
+                self.mirror(gameState, True)
                 return self.storeResult(self.hash, True)
-        
+        self.mirror(gameState, False)
         return self.storeResult(self.hash, False)
 
     def minmax_bool_and(self, gameState):
@@ -470,10 +477,10 @@ class GtpConnection():
             return self.storeResult(self.hash, self.evaluation(currentPlayer))
         
         for move in remainingMoves:
-            gameState.play_move(move, currentPlayer)
+            gameState.skip_checks_play(move, currentPlayer)
             
             #<-- updating the hash value --->
-            p = self.getP(move)
+            p = self.pValues[move]
             self.updateHash(self.hash, self.zobristArray[p][currentPlayer], self.zobristArray[p][0])
 
             #<---Call minmax OR node--->
@@ -484,8 +491,65 @@ class GtpConnection():
             self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][currentPlayer])
 
             if not isWin:
+                self.mirror(gameState, False)
                 return self.storeResult(self.hash, False)
+        self.mirror(gameState, True)
         return self.storeResult(self.hash, True)
+
+    def mirror(self, gameState, value):
+
+        tempHashH = self.hash
+        tempHashV = self.hash
+        divby2 = self.board.size // 2
+        
+        visitedH = []
+        visitedV = []
+        for point in range(len(gameState.board)):
+            piece = gameState.board[point]
+            if piece != BORDER:
+                coord = point_to_coord(point, self.board.size)
+                row = coord[0]
+                col = coord[1]
+                #<---get horizontal--->
+                if point not in visitedH:
+                    # for moving L->R
+
+                    if col <= divby2:
+                        mirrorCol = self.board.size - col + 1
+                      
+                    # # for moving R->L 
+                    # elif col >= divby2: 
+                    #     mirrorCol = col - divby2
+                    if mirrorCol != col:
+                        #We update the values
+                        mirrorMove = gameState.pt(row, mirrorCol)
+                        mirrorPiece = gameState.board[mirrorMove]
+                        
+                        if piece != mirrorPiece:
+                            p1 = self.pValues[point]
+                            p2 = self.pValues[mirrorMove]
+                            tempHashH = tempHashH ^ self.zobristArray[p1][piece] ^ self.zobristArray[p2][mirrorPiece] ^ self.zobristArray[p1][mirrorPiece] ^ self.zobristArray[p2][piece]
+                        visitedH.append(mirrorMove)
+
+                if point not in visitedV:
+                    if row <= divby2:
+                        mirrorRow = self.board.size - row + 1
+                    if mirrorRow != row:
+                        mirrorMove = gameState.pt(mirrorRow, col)
+                        mirrorPiece = gameState.board[mirrorMove]
+                        if piece != mirrorPiece:
+                            p1 = self.pValues[point]
+                            p2 = self.pValues[mirrorMove]
+                            tempHashV = tempHashV ^ self.zobristArray[p1][piece] ^ self.zobristArray[p2][mirrorPiece] ^ self.zobristArray[p1][mirrorPiece] ^ self.zobristArray[p2][piece]
+                    visitedV.append(mirrorMove)
+
+
+        self.storeResult(tempHashH, value)
+        self.storeResult(tempHashV, value)
+        #<---get Vertical--->
+        
+
+
 
 
     def storeResult(self, newHash, result):
@@ -505,9 +569,14 @@ class GtpConnection():
         # prepares them for use
 
         #<--- populate the zobrist array with 3 random numbers per board space (3 possible states 0, 1, 2)--->
-        self.zobristArray = []
-        for _ in range(self.maxSize):
-            self.zobristArray.append([random.getrandbits(64) for _ in range(3)])
+        # self.zobristArray = []
+        # for _ in range(self.maxSize):
+        #     self.zobristArray.append([random.getrandbits(64) for _ in range(3)])
+        self.zobristArray = np.zeros( (self.maxSize,3), dtype=np.int64) 
+        for i in range(self.maxSize):
+            self.zobristArray[i][0] = random.getrandbits(32)
+            self.zobristArray[i][1] = random.getrandbits(32)
+            self.zobristArray[i][2] = random.getrandbits(32)
 
         #<---Calculate the initial hash value of the board (ignores borders)--->
         self.hash = 0 
