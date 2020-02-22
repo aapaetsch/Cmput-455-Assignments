@@ -18,8 +18,8 @@ class SimpleGoBoard(object):
 
     def undo(self, move):
         self.board[move] = EMPTY
-        cp = self.current_player
-        self.current_player = BLACK if cp == WHITE else WHITE
+        # cp = self.current_player
+        # self.current_player = BLACK if cp == WHITE else WHITE
 
     def skip_checks_play(self, move, color):
         self.board[move] = color
