@@ -362,144 +362,135 @@ class GtpConnection():
         assert 1 <= int(args[0]) <= 100
         self.time_limit = int(args[0])
 
-    def solve_cmd(self, args):
-        self.totalStates = 0
-        # signal.alarm(self.time_limit)
-        # winningMoveFound =  False
-        self.originalPlayer = self.board.current_player
-        rootState = self.board.copy()
-        self.pValues = {}
-        for move in range(len(rootState.board)):
-            self.pValues[move] = self.getP(move)
+    # def solve_cmd(self, args):
+    #     self.totalStates = 0
+    #     # signal.alarm(self.time_limit)
+    #     # winningMoveFound =  False
+    #     self.originalPlayer = self.board.current_player
+    #     rootState = self.board.copy()
+    #     self.pValues = {}
+    #     for move in range(len(rootState.board)):
+    #         self.pValues[move] = self.getP(move)
         
-        try:
-            rootTime = time.time()
-            #<---init for transposition table--->
-            self.maxSize = self.board.size * self.board.size
-            self.zobrist_init(rootState) #<---self.hash is created in here
-            self.tt = TT()
-            stop = time.time()
-            print('Transposition Table setup:', stop-rootTime)
+    #     try:
+    #         rootTime = time.time()
+    #         #<---init for transposition table--->
+    #         self.maxSize = self.board.size * self.board.size
+    #         self.zobrist_init(rootState) #<---self.hash is created in here
+    #         self.tt = TT()
+    #         stop = time.time()
+    #         print('Transposition Table setup:', stop-rootTime)
 
-            remainingMoves = GoBoardUtil.generate_legal_moves(rootState, self.originalPlayer)
-            if self.isTerminal(remainingMoves):
-                #<---If a move is terminal right away, we assume we are in P-Position--->
-                self.respond('b' if self.originalPlayer == WHITE else 'w')
-                signal.alarm(0)
-            else:
+    #         remainingMoves = GoBoardUtil.generate_legal_moves(rootState, self.originalPlayer)
+    #         if self.isTerminal(remainingMoves):
+    #             #<---If a move is terminal right away, we assume we are in P-Position--->
+    #             self.respond('b' if self.originalPlayer == WHITE else 'w')
+    #             signal.alarm(0)
+    #         else:
 
-                for move in remainingMoves:
-                    start = time.time() #<TIMER
-                    rootState.skip_checks_play(move, self.originalPlayer)
-                    self.getIsomorphic = True
+    #             for move in remainingMoves:
+    #                 start = time.time() #<TIMER
+    #                 rootState.skip_checks_play(move, self.originalPlayer)
+    #                 self.getIsomorphic = True
                     
-                    #<---Update the current hash value (prevents having to recalculate it)--->
-                    p = self.pValues[move]
-                    self.updateHash(self.hash, self.zobristArray[p][self.originalPlayer], self.zobristArray[p][0])
+    #                 #<---Update the current hash value (prevents having to recalculate it)--->
+    #                 p = self.pValues[move]
+    #                 self.updateHash(self.hash, self.zobristArray[p][self.originalPlayer], self.zobristArray[p][0])
                    
                     
-                    #<---Call minmax algorithm--->
-                    isWin = self.minmax_bool_and(rootState)
+    #                 #<---Call minmax algorithm--->
+    #                 isWin = self.minmax_bool_and(rootState)
 
-                    if isWin:
-                        winningColor = 'b' if self.originalPlayer == BLACK else 'w'
-                        winningMove = format_point( point_to_coord(move, self.board.size) )
-                        self.respond('{} {}'.format(winningColor, winningMove.lower()))
-                        # winningMoveFound = True
-                        print('Total time:', time.time() - rootTime)
-                        # signal.alarm(0)
-                        return
-                    rootState.undo(move)
-                    self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][self.originalPlayer])
-                    stop = time.time()#<TIMER
-                    print("Move:", format_point(point_to_coord(move,self.board.size)), 'Time:', stop-start)
-            # if not winningMoveFound:
-            self.respond('b' if self.originalPlayer == WHITE else 'w')
-            print('Total time:', time.time() - rootTime)
-            # signal.alarm(0)
-            return
+    #                 if isWin:
+    #                     winningColor = 'b' if self.originalPlayer == BLACK else 'w'
+    #                     winningMove = format_point( point_to_coord(move, self.board.size) )
+    #                     self.respond('{} {}'.format(winningColor, winningMove.lower()))
+    #                     # winningMoveFound = True
+    #                     print('Total time:', time.time() - rootTime)
+    #                     # signal.alarm(0)
+    #                     return
+    #                 rootState.undo(move)
+    #                 self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][self.originalPlayer])
+    #                 stop = time.time()#<TIMER
+    #                 print("Move:", format_point(point_to_coord(move,self.board.size)), 'Time:', stop-start)
+    #         # if not winningMoveFound:
+    #         self.respond('b' if self.originalPlayer == WHITE else 'w')
+    #         print('Total time:', time.time() - rootTime)
+    #         # signal.alarm(0)
+    #         return
 
-        except:
-            self.respond("unknown")
-            print('total time before exit:', time.time() - rootTime, 'Timelimit:', self.time_limit)
-        # signal.alarm(0)
-        
-    # def solve_cmd(self, args):
-    #     #<---Solve cmd using ab--->
-    #     # signal.alarm(self.time_limit)
-    #     self.originalPlayer = self.board.current_player
-    #     rootState = self.board.copy()
-    #     self.bestMove = None
+    #     except:
+    #         self.respond("unknown")
+    #         print('total time before exit:', time.time() - rootTime, 'Timelimit:', self.time_limit)
+    #     # signal.alarm(0)
     
+    def solve_cmd(self, arg):
+        tt = TT()
+        rootState = self.board.copy()
+        self.bestMoves = []
+        self.originalPlayer = self.board.current_player
+        value = self.iterativeDeepening(10, rootState, tt)
         
-    #     value = self.alpha_beta(rootState, -float('Inf'), float('Inf'), True)
+        if value > 0:
+            self.respond('{}'.format('b' if self.originalPlayer == BLACK else 'w'))
+            moves = []
+            # for move in self.bestMoves:
+            moves.append(format_point(point_to_coord(self.bestMoves[0], self.board.size)).lower())
+            self.respond(moves)
+        elif value < 0 :
+            self.respond('{}'.format('b' if self.originalPlayer == WHITE else 'w'))
 
-    #     if self.bestMove != None:
+    def depthLimit(self, depth, rootState, tt):
+        return self.alpha_beta_dl(rootState, -float("Inf"), float('Inf'), tt, depth)
 
-    #         bestMove = format_point(point_to_coord(self.bestMove, self.board.size))
-    #         self.respond('{} {}'.format('b' if self.originalPlayer == BLACK else 'w', bestMove))
-    #     else:
-    #         self.respond('{}'.format('b' if self.originalPlayer == WHITE else 'w'))
+    def alpha_beta_dl(self, gameState, alpha, beta, tt, depth):
+        cp = gameState.current_player
+        remainingMoves = GoBoardUtil.generate_legal_moves(gameState, cp)
+        countRemaining = len(remainingMoves)
+        if self.isTerminal(countRemaining) or depth == 0:
+            return self.ab_evaluation(cp, gameState, countRemaining, tt)
 
-    # def statistic_eval(self, gameState, remainingMoveCount):
-    #     if gameState.current_player == self.originalPlayer:
-    #         return 0
-    #     else:
-    #         return 1
-        
-    # def alpha_beta(self, gameState, alpha, beta, top):
+        for move in remainingMoves:
+            gameState.skip_checks_play(move, cp)
+            value = -self.alpha_beta_dl(gameState, -beta, -alpha, tt, depth - 1)
 
-    #     remainingMoves = GoBoardUtil.generate_legal_moves(gameState, gameState.current_player)
-    #     remainingMoveCount = len(remainingMoves)
-    
-    #     if self.isTerminal(remainingMoveCount):
-    #         #<---Do evaluation--->
-    #         return self.statistic_eval(gameState)
-    #     for move in remainingMoves:
-    #         gameState.skip_checks_play(move, gameState.current_player)
-    #         value = -self.alpha_beta(gameState, -beta, -alpha, False)
-    #         if (value > alpha):
-    #             alpha = value
-    #             if top:
-    #                 self.bestMove = move
-    #                 break  
-    #         gameState.undo(move)
-    #         if (value >= beta):
-    #             return beta
-    #     return alpha
-
-    # def isTerminal(self, remainingMoveCount):
-    #     if remainingMoveCount == 0 :
-    #         return True
-    #     return False
-
-    # def solve_cmd(self,args):
-    #     rootState = self.board.copy()
-    #     self.originalPlayer = self.board.current_player
-    #     tt = TT()
-    #     self.zobrist_init(rootState)
-    #     success = negamax_bool(state, tt)
-
-    def negamax_bool(self, gameState, tt):
-        result = tt.lookup(self.hash)
-        if result != None:
-            return result
-
-        legalMoves = GoBoardUtil.generate_legal_moves(gameState, gameState.current_player)
-
-        if self.isTerminal(legalMoves):
-            return self.evaluation()
-
-        for move in legalMoves:
-            gameState.skip_checks_play(move, gameState.current_player)
-            success = not negamax_bool(gameState, tt)
+            if value > alpha:
+                alpha = value 
+                
+                self.bestMoves.append(move)
+                
             gameState.undo(move)
 
-            if success:
-                return True
 
-        return False
+            if value >= beta:
+                
+                return beta
+        return alpha
 
+
+    def ab_evaluation(self, cp, countRemaining, gameState):
+        
+        if countRemaining == 0:
+            if self.originalPlayer == cp:
+                return self.storeResult_withH(self.hash, -1, False)
+            else:
+                return self.storeResult_withH(self.hash, 1, False)
+        else:
+            cpScore = len(GoBoardUtil.generate_legal_moves(gameState, cp))
+            opponent = BLACK if cp == WHITE else WHITE
+            oppScore = len(GoBoardUtil.generate_legal_moves(gameState, opponent))
+            return self.storeResult_withH(self.hash, score, True)
+
+
+
+    def isTerminal(self, remainingMoves):
+        if remainingMoves == 0:
+            return True
+        else:
+            return False
+
+        
+ 
 
 
 
@@ -653,6 +644,10 @@ class GtpConnection():
         # print("Time for mirror:", time.time()- start)
         #<---get Vertical--->
 
+    def storeResult_withH(self, newHash, result, isHeuristic):
+        self.tt.store(newHash, result, isHeuristic)
+        return result
+
     def storeResult(self, newHash, result):
         self.tt.store(newHash, result)
         return result
@@ -691,17 +686,17 @@ class GtpConnection():
                 count += 1
 
 
-    def evaluation(self ,currentPlayer):
-        if self.originalPlayer == currentPlayer:
-            return 0
-        else:
-            return 1
+    # def evaluation(self ,currentPlayer):
+    #     if self.originalPlayer == currentPlayer:
+    #         return 0
+    #     else:
+    #         return 1
 
-    def isTerminal(self, remainingMoves):
-        if len(remainingMoves) != 0:
-            return False
-        else:
-            return True 
+    # def isTerminal(self, remainingMoves):
+    #     if len(remainingMoves) != 0:
+    #         return False
+    #     else:
+    #         return True 
 
 
 
