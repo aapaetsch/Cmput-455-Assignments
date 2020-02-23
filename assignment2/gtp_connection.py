@@ -363,6 +363,7 @@ class GtpConnection():
         self.time_limit = int(args[0])
 
     def solve_cmd(self, args):
+        self.totalStates = 0
         # signal.alarm(self.time_limit)
         # winningMoveFound =  False
         self.originalPlayer = self.board.current_player
@@ -472,12 +473,42 @@ class GtpConnection():
     #         return True
     #     return False
 
+    # def solve_cmd(self,args):
+    #     rootState = self.board.copy()
+    #     self.originalPlayer = self.board.current_player
+    #     tt = TT()
+    #     self.zobrist_init(rootState)
+    #     success = negamax_bool(state, tt)
+
+    def negamax_bool(self, gameState, tt):
+        result = tt.lookup(self.hash)
+        if result != None:
+            return result
+
+        legalMoves = GoBoardUtil.generate_legal_moves(gameState, gameState.current_player)
+
+        if self.isTerminal(legalMoves):
+            return self.evaluation()
+
+        for move in legalMoves:
+            gameState.skip_checks_play(move, gameState.current_player)
+            success = not negamax_bool(gameState, tt)
+            gameState.undo(move)
+
+            if success:
+                return True
+
+        return False
+
+
+
+
     #<---Trying to implement an and or version here --->
     def minmax_bool_or(self, gameState):
         #<---Check the transposition table if this node has been found --->
-        # result = self.tt.lookup(self.hash)
-        # if result != None:
-        #     return result
+        result = self.tt.lookup(self.hash)
+        if result != None:
+            return result
 
         currentPlayer = gameState.current_player
         remainingMoves = GoBoardUtil.generate_legal_moves(gameState, currentPlayer)
@@ -653,7 +684,10 @@ class GtpConnection():
         count = 0 
         for point in gameState.board:
             if point != BORDER:
-                self.hash = self.hash ^ self.zobristArray[count][point]
+                if count == 0:
+                    self.hash = self.zobristArray[count][point]
+                else:
+                    self.hash = self.hash ^ self.zobristArray[count][point]
                 count += 1
 
 
