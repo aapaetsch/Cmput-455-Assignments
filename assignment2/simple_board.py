@@ -16,17 +16,6 @@ from board_util import GoBoardUtil, BLACK, WHITE, EMPTY, BORDER, \
 
 class SimpleGoBoard(object):
 
-    def undo(self, move):
-        self.board[move] = EMPTY
-        # cp = self.current_player
-        # self.current_player = BLACK if cp == WHITE else WHITE
-
-    def skip_checks_play(self, move, color):
-        self.board[move] = color
-        cp = self.current_player
-        self.current_player = BLACK if cp == WHITE else WHITE
-
-
     def get_color(self, point):
         return self.board[point]
 

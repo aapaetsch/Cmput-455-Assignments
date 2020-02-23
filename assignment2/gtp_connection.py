@@ -357,6 +357,15 @@ class GtpConnection():
                      "pstring/Rules GameID/gogui-rules_game_id\n"
                      "pstring/Show Board/gogui-rules_board\n"
                      )
+    def undo(self, move, gameState):
+        gameState.board[move] = EMPTY
+        cp = gameState.current_player
+        gameState.current_player = BLACK if cp == WHITE else WHITE
+
+    def skip_checks_play(self, move, color, gameState):
+        gameState.board[move] = color
+        cp = gameState.current_player
+        gameState.current_player = BLACK if cp == WHITE else WHITE
 
     def time_limit_cmd(self, args):
         assert 1 <= int(args[0]) <= 100
@@ -370,7 +379,8 @@ class GtpConnection():
         rootState = self.board.copy()
         self.pValues = {}
         for move in range(len(rootState.board)):
-            self.pValues[move] = self.getP(move)
+            if rootState.board[move] not BORDER:
+                self.pValues[move] = self.getP(move)
         
         try:
             rootTime = time.time()
@@ -390,8 +400,7 @@ class GtpConnection():
 
                 for move in remainingMoves:
                     start = time.time() #<TIMER
-                    rootState.skip_checks_play(move, self.originalPlayer)
-                    self.getIsomorphic = True
+                    self.skip_checks_play(move, self.originalPlayer, rootState)
                     
                     #<---Update the current hash value (prevents having to recalculate it)--->
                     p = self.pValues[move]
@@ -409,7 +418,7 @@ class GtpConnection():
                         print('Total time:', time.time() - rootTime)
                         # signal.alarm(0)
                         return
-                    rootState.undo(move)
+                    self..undo(move, rootState)
                     self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][self.originalPlayer])
                     stop = time.time()#<TIMER
                     print("Move:", format_point(point_to_coord(move,self.board.size)), 'Time:', stop-start)
@@ -439,7 +448,7 @@ class GtpConnection():
             return self.storeResult(self.hash, self.evaluation(currentPlayer))
 
         for move in remainingMoves:
-            gameState.skip_checks_play(move, currentPlayer)
+            self..skip_checks_play(move, currentPlayer, gameState)
 
             #<-- updating the hash value --->
             p = self.pValues[move]
@@ -449,7 +458,7 @@ class GtpConnection():
             isWin = self.minmax_bool_and(gameState)
         
             #<---Revert the hash and gameState back to the previous value--->
-            gameState.undo(move)
+            self.undo(move, gameState)
             self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][currentPlayer])
             
             if isWin:
@@ -474,7 +483,7 @@ class GtpConnection():
             return self.storeResult(self.hash, self.evaluation(currentPlayer))
         
         for move in remainingMoves:
-            gameState.skip_checks_play(move, currentPlayer)
+            self.skip_checks_play(move, currentPlayer, gameState)
             
             #<-- updating the hash value --->
             p = self.pValues[move]
@@ -484,7 +493,7 @@ class GtpConnection():
             isWin = self.minmax_bool_or(gameState)
         
             #<---Revert the hash and gameState back to the previous value--->
-            gameState.undo(move)
+            self.undo(move, gameState)
             self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][currentPlayer])
 
             if not isWin:
