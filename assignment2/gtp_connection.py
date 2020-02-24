@@ -1,3 +1,4 @@
+
 """
 gtp_connection.py
 Module for playing games of Go using GoTextProtocol
