@@ -6,7 +6,7 @@ class TT(object):
         return self.table.__repr__()
 
     def store(self, code, score):
-        self.table[code] = {}
+        self.table[code] = score
         
 
     def lookup(self, code):

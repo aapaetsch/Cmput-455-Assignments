@@ -18,6 +18,8 @@ import random
 import signal
 from TranspositionTable import TT
 alarmTime = 0
+import os
+import psutil
 
 
 class TimeException(Exception):
@@ -394,96 +396,140 @@ class GtpConnection():
     def undo(self, move, gameState):
         gameState.board[move] = EMPTY
         cp = gameState.current_player
-        gameState.current_player = BLACK if cp == WHITE else WHITE
+        gameState.current_player = WHITE + BLACK - cp
 
     def skip_checks_play(self, move, color, gameState):
         gameState.board[move] = color
-        cp = gameState.current_player
-        gameState.current_player = BLACK if cp == WHITE else WHITE
+        gameState.current_player = WHITE + BLACK - color
 
     def time_limit_cmd(self, args):
         assert 1 <= int(args[0]) <= 100
         self.time_limit = int(args[0])
 
     def solve_cmd(self, args):
-        self.totalStates = 0
-        signal.alarm(self.time_limit)
+        self.builtin = []
+        self.builtinTimes = []
+        self.my = []
+        self.myTimes = []
+        # signal.alarm(self.time_limit)
         # winningMoveFound =  False
         self.originalPlayer = self.board.current_player
         rootState = self.board.copy()
         self.pValues = {}
         for move in range(len(rootState.board)):
-            # if rootState.board[move] != BORDER:
-            self.pValues[move] = self.getP(move)
+            if rootState.board[move] != BORDER:
+                self.pValues[move] = self.getP(move)
         
-        try:
-            rootTime = time.time()
-            #<---init for transposition table--->
-            self.maxSize = self.board.size * self.board.size
-            self.zobrist_init(rootState) #<---self.hash is created in here
-            self.tt = TT()
-            stop = time.time()
-            print('Transposition Table setup:', stop-rootTime)
+        # try:
+        rootTime = time.time()
+        #<---init for transposition table--->
+        self.maxSize = self.board.size * self.board.size
+        self.zobrist_init(rootState) #<---self.hash is created in here
+        self.tt = TT()
+        stop = time.time()
+        print('Transposition Table setup:', stop-rootTime)
+        depth = 1
 
-            remainingMoves = GoBoardUtil.generate_legal_moves(rootState, self.originalPlayer)
-            if self.isTerminal(remainingMoves):
-                #<---If a move is terminal right away, we assume we are in P-Position--->
-                m = 'b' if self.originalPlayer == WHITE else 'w'
-                self.respond(m)
-                signal.alarm(0)
-            else:
+        # #<---FOR LEGAL MOVE TESTING--->
+        # legalMoveTime = time.time()
+        # remainingMoves = GoBoardUtil.generate_legal_moves(rootState, self.originalPlayer)
+        # self.builtinTimes.append(time.time()-legalMoveTime)
+        # self.builtin.append(remainingMoves)
 
-                for move in remainingMoves:
-                    start = time.time() #<TIMER
-                    self.skip_checks_play(move, self.originalPlayer, rootState)
-                    
-                    #<---Update the current hash value (prevents having to recalculate it)--->
-                    p = self.pValues[move]
-                    self.updateHash(self.hash, self.zobristArray[p][self.originalPlayer], self.zobristArray[p][0])
-                   
-                    
-                    #<---Call minmax algorithm--->
-                    isWin = self.minmax_bool_and(rootState)
-                    
-                    if isWin:
-                        winningColor = 'b' if self.originalPlayer == BLACK else 'w'
-                        winningMove = format_point( point_to_coord(move, self.board.size) )
-                        self.respond('{} {}'.format(winningColor, winningMove.lower()))
-                        # winningMoveFound = True
-                        print('Total time:', time.time() - rootTime)
-                        signal.alarm(0)
-                        return '{} {}'.format(winningColor, winningMove.lower())
-                    self.undo(move, rootState)
-                    self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][self.originalPlayer])
-                    stop = time.time()#<TIMER
-                    print("Move:", format_point(point_to_coord(move,self.board.size)), 'Time:', stop-start)
-            # if not winningMoveFound:
+        # myTime = time.time()
+        # myRemaining = self.getLegalMoves(rootState)
+        # self.myTimes.append(time.time()-myTime)
+        # self.my.append(myRemaining)
+
+        # #<---done testing--->
+        remainingMoves = self.getLegalMoves(rootState)
+        remainingCount = len(remainingMoves)
+
+        if self.isTerminal(remainingCount):
+            #<---If a move is terminal right away, we assume we are in P-Position--->
             m = 'b' if self.originalPlayer == WHITE else 'w'
             self.respond(m)
-            print('Total time:', time.time() - rootTime)
-            signal.alarm(0)
-            return m
+            self.comparison()#<___REMOVE LATER___>
+            return m 
+            # signal.alarm(0)
+        else:
 
-        except:
-            self.respond("unknown")
-            return 'unknown'
-            print('total time before exit:', time.time() - rootTime, 'Timelimit:', self.time_limit)
-        signal.alarm(0)
+            for move in remainingMoves:
+                start = time.time() #<TIMER
+                self.skip_checks_play(move, self.originalPlayer, rootState)
+                
+                #<---Update the current hash value (prevents having to recalculate it)--->
+                p = self.pValues[move]
+                self.updateHash(self.hash, self.zobristArray[p][self.originalPlayer], self.zobristArray[p][0])
+               
+                
+                #<---Call minmax algorithm--->
+                isWin = self.minmax_bool_and(rootState, depth)
+                
+                if isWin:
+                    winningColor = 'b' if self.originalPlayer == BLACK else 'w'
+                    winningMove = format_point( point_to_coord(move, self.board.size) )
+                    self.respond('{} {}'.format(winningColor, winningMove.lower()))
+                    # winningMoveFound = True
+                    print('Total time:', time.time() - rootTime)
+                    # signal.alarm(0)
+                    # self.comparison()#<___REMOVE LATER___>
+                    return '{} {}'.format(winningColor, winningMove.lower())
+
+                self.undo(move, rootState)
+                self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][self.originalPlayer])
+                stop = time.time()#<TIMER
+                print("Move:", format_point(point_to_coord(move,self.board.size)), 'Time:', stop-start)
+                
+                # self.comparison()
+
+        # if not winningMoveFound:
+        m = 'b' if self.originalPlayer == WHITE else 'w'
+        self.respond(m)
+        print('Total time:', time.time() - rootTime)
+        # signal.alarm(0)
+        # self.comparison()#<___REMOVE LATER___>
+        return m
+
+        # except:
+        #     self.respond("unknown")
+        #     print('total time before exit:', time.time() - rootTime, 'Timelimit:', self.time_limit)
+        #     # signal.alarm(0)
+        #     # self.comparison()#<___REMOVE LATER___>
+        #     return 'unknown'
+            
+        # signal.alarm(0)
+
+    
 
 
     #<---Trying to implement an and or version here --->
-    def minmax_bool_or(self, gameState):
+    def minmax_bool_or(self, gameState, depth):
         #<---Check the transposition table if this node has been found --->
         result = self.tt.lookup(self.hash)
         if result != None:
             return result
 
         currentPlayer = gameState.current_player
-        remainingMoves = GoBoardUtil.generate_legal_moves(gameState, currentPlayer)
-        
-        if self.isTerminal(remainingMoves):
-            return self.storeResult(self.hash, self.evaluation(currentPlayer))
 
+        # #<---My testing--->
+        # legalMoveTime = time.time()
+        # remainingMoves = GoBoardUtil.generate_legal_moves(gameState, currentPlayer)
+        # self.builtinTimes.append(time.time()-legalMoveTime)
+        # self.builtin.append(remainingMoves)
+
+        # myTime = time.time()
+        # myRemaining = self.getLegalMoves(gameState)
+        # self.myTimes.append(time.time()-myTime)
+        # self.my.append(myRemaining)
+
+        # #<---End of testing--->
+        remainingMoves = self.getLegalMoves(gameState)
+        remainingCount = len(remainingMoves)
+        terminalState = self.isTerminal(remainingCount)
+        if terminalState or depth == 0 :
+            return self.storeResult(self.hash, self.evaluation(currentPlayer, terminalState, remainingCount))
+        
         for move in remainingMoves:
             self.skip_checks_play(move, currentPlayer, gameState)
 
@@ -492,7 +538,7 @@ class GtpConnection():
             self.updateHash(self.hash, self.zobristArray[p][currentPlayer], self.zobristArray[p][0])
 
             #<---call minmax AND node--->
-            isWin = self.minmax_bool_and(gameState)
+            isWin = self.minmax_bool_and(gameState, depth)
         
             #<---Revert the hash and gameState back to the previous value--->
             self.undo(move, gameState)
@@ -505,18 +551,34 @@ class GtpConnection():
         return self.storeResult(self.hash, False)
 
 
-    def minmax_bool_and(self, gameState):
+    def minmax_bool_and(self, gameState, depth):
         #<---Check the transposition table if this node has been found--->
         result = self.tt.lookup(self.hash)
         if result != None:
             return result
             
         currentPlayer = gameState.current_player
-        remainingMoves = GoBoardUtil.generate_legal_moves(gameState, currentPlayer)
-
-        if self.isTerminal(remainingMoves):
-            return self.storeResult(self.hash, self.evaluation(currentPlayer))
+        # #<---My testing--->
+        # legalMoveTime = time.time()
+        # remainingMoves = GoBoardUtil.generate_legal_moves(gameState, currentPlayer)
+        # self.builtinTimes.append(time.time()-legalMoveTime)
+        # self.builtin.append(remainingMoves)
         
+        # myTime = time.time()
+        # myRemaining = self.getLegalMoves(gameState)
+        # self.myTimes.append(time.time()-myTime)
+        # self.my.append(myRemaining)
+
+        # #<---End of testing--->
+        
+        remainingMoves = self.getLegalMoves(gameState)
+        remainingCount = len(remainingMoves)
+        terminalState = self.isTerminal(remainingCount)
+        if terminalState or depth == 0 :
+            return self.storeResult(self.hash, self.evaluation(currentPlayer, terminalState, remainingCount))
+        
+
+
         for move in remainingMoves:
             self.skip_checks_play(move, currentPlayer, gameState)
             
@@ -525,7 +587,7 @@ class GtpConnection():
             self.updateHash(self.hash, self.zobristArray[p][currentPlayer], self.zobristArray[p][0])
 
             #<---Call minmax OR node--->
-            isWin = self.minmax_bool_or(gameState)
+            isWin = self.minmax_bool_or(gameState, depth)
         
             #<---Revert the hash and gameState back to the previous value--->
             self.undo(move, gameState)
@@ -580,17 +642,100 @@ class GtpConnection():
                 count += 1
 
 
-    def evaluation(self ,currentPlayer):
-        if self.originalPlayer == currentPlayer:
-            return False
+    def evaluation(self ,currentPlayer, terminal, remainingMoves):
+        if terminal:
+            if self.originalPlayer == currentPlayer:
+                return False
+            else:
+                return True
         else:
-            return True
+            return remainingMoves
+
 
     def isTerminal(self, remainingMoves):
-        if len(remainingMoves) != 0:
+        if remainingMoves != 0:
             return False
         else:
             return True 
+
+    def getLegalMoves(self, gameState):
+        #<---get the empty points--->
+        
+        # tempState = gameState.copy() #Can try to remove this later
+        moves = gameState.get_empty_points()
+        cp = gameState.current_player
+        opponent = BLACK + WHITE - cp
+         
+        legalMoves = []
+        for m in moves:
+            if self.checkMoveLegality(m, gameState, cp, opponent):
+                legalMoves.append(m)
+        return legalMoves
+             
+            
+    def checkMoveLegality(self, m, tempState, cp, opponent):
+        neighbors = tempState.neighbors[m]
+        totalNeighbors = len(neighbors)
+        #check if it is surrounded 
+        oppNeighbors = 0 
+        allyNeighbors = 0 
+        emptyNeighbors = 0 
+        for n in neighbors:
+            if tempState.board[n] == cp:
+                allyNeighbors += 1               
+            elif tempState.board[n] == opponent:
+                oppNeighbors += 1 
+            elif tempState.board[n] == EMPTY:
+                emptyNeighbors += 1
+        
+        if (emptyNeighbors == totalNeighbors) or (oppNeighbors == 0 and emptyNeighbors > 0):
+            return True
+        
+        elif oppNeighbors == totalNeighbors:
+            return False
+
+        if allyNeighbors > 0 and oppNeighbors == 0:
+            return self.detectLibertyInAllyBlock(m, tempState, cp)
+
+        if tempState.is_legal(m, cp):
+            return True
+        return False
+
+    def detectLibertyInAllyBlock(self, m, tempState, cp):
+        visited = np.full(tempState.maxpoint, False, dtype=bool)
+        #<---Detect if there is at least 1 liberty for my block--->
+        stack = [m]
+        visited[m] = True
+        while stack:
+            point = stack.pop()
+            for nb in tempState.neighbors[point]:
+                if not visited[nb]:
+                    if tempState.board[nb] == cp:
+                        stack.append(nb)
+                        visited[nb] = True
+                    elif tempState.board[nb] == EMPTY:
+                        return True
+        return False
+
+    def comparison(self):
+        sumBuiltinTime = sum(self.builtinTimes)
+        denomBuiltIn = len(self.builtinTimes)
+        sumMyTime = sum(self.myTimes)
+        denomMyTime = len(self.myTimes)
+        if denomMyTime != denomBuiltIn:
+            print('Time denominators not equal')
+        avgTimeBuiltIn = sumBuiltinTime/denomBuiltIn
+        avgTimeMine = sumMyTime/denomMyTime
+        print("Find Legal Moves Stats:\n\tBuilt in Time: {}\tMy Time:{}\tMy Savings:{}".format(str(avgTimeBuiltIn), str(avgTimeMine), str( (avgTimeBuiltIn-avgTimeMine)*denomBuiltIn ) ))
+        notEqual = []
+        for i in range(len(self.builtin)):
+            if self.builtin[i] != self.my[i]:
+                notEqual.append([self.builtin[i], self.my[i]])
+        for i in range(len(notEqual)):
+            print('\t', notEqual[i])
+        print('\tTotal not equal: {}'.format(str(len(notEqual))))
+        input()
+
 
 
 
