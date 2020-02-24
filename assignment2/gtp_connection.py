@@ -268,51 +268,51 @@ class GtpConnection():
             self.respond('illegal move: \"{} {}\" {}'.format(args[0], args[1], str(e)))
 
     
-    def genmove_cmd(self, args):
-       """
-       Generate a move for the color args[0] in {'b', 'w'}, for the game of gomoku.
-       """
-       board_color = args[0].lower()
-       color = color_to_int(board_color)
-       move = self.go_engine.get_move(self.board, color)
-       move_coord = point_to_coord(move, self.board.size)
-       move_as_string = format_point(move_coord)
-       if self.board.is_legal(move, color):
-           self.board.play_move(move, color)
-           self.respond(move_as_string)
-       else:
-           self.respond("resign")
-     
     # def genmove_cmd(self, args):
-    #     """
-    #     Generate a move for the color args[0] in {'b', 'w'}, for the game of gomoku.
-    #     """
-    #     board_color = args[0].lower()
-    #     color = color_to_int(board_color)
-    #     moves = GoBoardUtil.generate_legal_moves(self.board, color)
-    #     #if game is not over
-    #     if len(moves) > 0:
-    #         ouput = self.solve_cmd(self.board)
-    #         if output != "unkonwn" and ouput != "b" and output != "w": 
-    #             output_move = ouput[2:]
-    #             m = move_to_coord(output_move,self.board.size)
-    #             move = self.board.pt(m[0],m[1])
-    #             if self.board.is_legal(move, color):
-    #                 self.board.play_move(move, color)
-    #                 self.respond(ouptut_move)
-    #             else:
-    #                 self.respond("resign")
-    #         else: #generate random move
-    #             move = self.go_engine.get_move(self.board, color)
-    #             move_coord = point_to_coord(move, self.board.size)
-    #             move_as_string = format_point(move_coord)
-    #             if self.board.is_legal(move, color):
-    #                 self.board.play_move(move, color)
-    #                 self.respond(move_as_string)
-    #             else:
-    #                 self.respond("resign")
-    #     else:
-    #         self.respond("resign")
+    #    """
+    #    Generate a move for the color args[0] in {'b', 'w'}, for the game of gomoku.
+    #    """
+    #    board_color = args[0].lower()
+    #    color = color_to_int(board_color)
+    #    move = self.go_engine.get_move(self.board, color)
+    #    move_coord = point_to_coord(move, self.board.size)
+    #    move_as_string = format_point(move_coord)
+    #    if self.board.is_legal(move, color):
+    #        self.board.play_move(move, color)
+    #        self.respond(move_as_string)
+    #    else:
+    #        self.respond("resign")
+     
+    def genmove_cmd(self, args):
+        """
+        Generate a move for the color args[0] in {'b', 'w'}, for the game of gomoku.
+        """
+        board_color = args[0].lower()
+        color = color_to_int(board_color)
+        moves = GoBoardUtil.generate_legal_moves(self.board, color)
+        #if game is not over
+        if len(moves) > 0:
+            ouput = self.solve_cmd(self.board)
+            if output != "unkonwn" and ouput != "b" and output != "w": 
+                output_move = ouput[2:]
+                m = move_to_coord(output_move,self.board.size)
+                move = self.board.pt(m[0],m[1])
+                if self.board.is_legal(move, color):
+                    self.board.play_move(move, color)
+                    self.respond(ouptut_move)
+                else:
+                    self.respond("resign")
+            else: #generate random move
+                move = self.go_engine.get_move(self.board, color)
+                move_coord = point_to_coord(move, self.board.size)
+                move_as_string = format_point(move_coord)
+                if self.board.is_legal(move, color):
+                    self.board.play_move(move, color)
+                    self.respond(move_as_string)
+                else:
+                    self.respond("resign")
+        else:
+            self.respond("resign")
 
     def gogui_rules_game_id_cmd(self, args):
         self.respond("NoGo")
@@ -411,8 +411,8 @@ class GtpConnection():
         self.builtinTimes = []
         self.my = []
         self.myTimes = []
-        # signal.alarm(self.time_limit)
-        # winningMoveFound =  False
+        signal.alarm(self.time_limit)
+
         self.originalPlayer = self.board.current_player
         rootState = self.board.copy()
         self.pValues = {}
@@ -420,71 +420,66 @@ class GtpConnection():
             if rootState.board[move] != BORDER:
                 self.pValues[move] = self.getP(move)
         
-        # try:
-        self.rootTime = time.time()
-        #<---init for transposition table--->
-        self.maxSize = self.board.size * self.board.size
-        self.zobrist_init(rootState) #<---self.hash is created in here
-        self.tt = TT()
-        stop = time.time()
-        print('Transposition Table setup:', stop-self.rootTime)
-        depth = 1
+        try:
+            self.rootTime = time.time()
+            #<---init for transposition table--->
+            self.maxSize = self.board.size * self.board.size
+            self.zobrist_init(rootState) #<---self.hash is created in here
+            self.tt = TT()
+            stop = time.time()
+            print('Transposition Table setup:', stop-self.rootTime)
 
-        # #<---FOR LEGAL MOVE TESTING--->
-        # legalMoveTime = time.time()
-        # remainingMoves = GoBoardUtil.generate_legal_moves(rootState, self.originalPlayer)
-        # self.builtinTimes.append(time.time()-legalMoveTime)
-        # self.builtin.append(remainingMoves)
+            # #<---FOR LEGAL MOVE TESTING--->
+            # legalMoveTime = time.time()
+            # remainingMoves = GoBoardUtil.generate_legal_moves(rootState, self.originalPlayer)
+            # self.builtinTimes.append(time.time()-legalMoveTime)
+            # self.builtin.append(remainingMoves)
 
-        # myTime = time.time()
-        # myRemaining = self.getLegalMoves(rootState)
-        # self.myTimes.append(time.time()-myTime)
-        # self.my.append(myRemaining)
+            # myTime = time.time()
+            # myRemaining = self.getLegalMoves(rootState)
+            # self.myTimes.append(time.time()-myTime)
+            # self.my.append(myRemaining)
 
-        # #<---done testing--->
-        remainingMoves = self.getLegalMoves(rootState)
-        remainingCount = len(remainingMoves)
+            # #<---done testing--->
+            remainingMoves = self.getLegalMoves(rootState)
+            remainingCount = len(remainingMoves)
 
-        if self.isTerminal(remainingCount):
-            #<---If a move is terminal right away, we assume we are in P-Position--->
+            if self.isTerminal(remainingCount):
+                #<---If a move is terminal right away, we assume we are in P-Position--->
+                m = 'b' if self.originalPlayer == WHITE else 'w'
+                self.respond(m)
+                # self.comparison()#<___REMOVE LATER___>
+                return m 
+                # signal.alarm(0)
+            else:
+            
+                minmaxResult = self.call_minMax(rootState, remainingMoves)
+                if minmaxResult != False :
+                    return minmaxResult
+                    
             m = 'b' if self.originalPlayer == WHITE else 'w'
             self.respond(m)
+            print('Total time:', time.time() - self.rootTime)
+            signal.alarm(0)
             # self.comparison()#<___REMOVE LATER___>
-            return m 
-            # signal.alarm(0)
-        else:
+            return m
 
-            minmaxResult = self.call_minMax(rootState, 1, remainingMoves)
-            if minmaxResult != False:
-                return minmaxResult
+        except:
+            self.respond("unknown")
+            print('total time before exit:', time.time() - rootTime, 'Timelimit:', self.time_limit)
+            signal.alarm(0)
+            # self.comparison()#<___REMOVE LATER___>
+            return 'unknown'
             
+        signal.alarm(0)
 
-        # if not winningMoveFound:
-        m = 'b' if self.originalPlayer == WHITE else 'w'
-        self.respond(m)
-        print('Total time:', time.time() - self.rootTime)
-        # signal.alarm(0)
-        # self.comparison()#<___REMOVE LATER___>
-        return m
-
-        # except:
-        #     self.respond("unknown")
-        #     print('total time before exit:', time.time() - rootTime, 'Timelimit:', self.time_limit)
-        #     # signal.alarm(0)
-        #     # self.comparison()#<___REMOVE LATER___>
-        #     return 'unknown'
-            
-        # signal.alarm(0)
-
-    def call_minMax(self, gameState, depth, remainingMoves):
+    def call_minMax(self, gameState, remainingMoves):
         for move in remainingMoves:
             start = time.time()
-            self.skip_checks_play(move, self.originalPlayer, gameState)
-            p = self.pValues[move]
-            oldHash = self.hash
-            self.updateHash(self.hash, self.zobristArray[p][self.originalPlayer], self.zobristArray[p][0])
 
-            isWin = self.minmax_bool_and(gameState, depth)
+            oldHash = self.playMove(move, self.originalPlayer, gameState)
+
+            isWin = self.minmax_bool_and(gameState)
 
             if isWin:
                 winningColor = 'b' if self.originalPlayer == BLACK else 'w'
@@ -501,10 +496,8 @@ class GtpConnection():
         return False
 
 
-
-
     #<---Trying to implement an and or version here --->
-    def minmax_bool_or(self, gameState, depth):
+    def minmax_bool_or(self, gameState):
         #<---Check the transposition table if this node has been found --->
         result = self.tt.lookup(self.hash)
         if result != None:
@@ -516,19 +509,13 @@ class GtpConnection():
         remainingMoves = self.getLegalMoves(gameState)
         remainingCount = len(remainingMoves)
         terminalState = self.isTerminal(remainingCount)
-        if terminalState or depth == 0 :
-            return self.storeResult(self.hash, self.evaluation(currentPlayer, terminalState, remainingCount))
+        if terminalState:
+            return self.storeResult(self.hash, self.evaluation(currentPlayer, remainingCount))
         
         for move in remainingMoves:
-            self.skip_checks_play(move, currentPlayer, gameState)
-
-            #<-- updating the hash value --->
-            p = self.pValues[move]
-            oldHash = self.hash
-            self.updateHash(self.hash, self.zobristArray[p][currentPlayer], self.zobristArray[p][0])
-
+            oldHash = self.playMove(move, currentPlayer, gameState)
             #<---call minmax AND node--->
-            isWin = self.minmax_bool_and(gameState, depth)
+            isWin = self.minmax_bool_and(gameState)
         
             #<---Revert the hash and gameState back to the previous value--->
             self.undo(move, gameState)
@@ -540,7 +527,7 @@ class GtpConnection():
         return self.storeResult(self.hash, False)
 
 
-    def minmax_bool_and(self, gameState, depth):
+    def minmax_bool_and(self, gameState):
         #<---Check the transposition table if this node has been found--->
         result = self.tt.lookup(self.hash)
         if result != None:
@@ -563,21 +550,13 @@ class GtpConnection():
         remainingMoves = self.getLegalMoves(gameState)
         remainingCount = len(remainingMoves)
         terminalState = self.isTerminal(remainingCount)
-        if terminalState or depth == 0 :
-            return self.storeResult(self.hash, self.evaluation(currentPlayer, terminalState, remainingCount))
+        if terminalState:
+            return self.storeResult(self.hash, self.evaluation(currentPlayer, remainingCount))
         
-
-
         for move in remainingMoves:
-            self.skip_checks_play(move, currentPlayer, gameState)
-            
-            #<-- updating the hash value --->
-            p = self.pValues[move]
-            oldHash = self.hash
-            self.updateHash(self.hash, self.zobristArray[p][currentPlayer], self.zobristArray[p][0])
-
+            oldHash = self.playMove(move, currentPlayer, gameState)
             #<---Call minmax OR node--->
-            isWin = self.minmax_bool_or(gameState, depth)
+            isWin = self.minmax_bool_or(gameState)
         
             #<---Revert the hash and gameState back to the previous value--->
             self.undo(move, gameState)
@@ -587,10 +566,14 @@ class GtpConnection():
 
         return self.storeResult(self.hash, True)
 
-
-    def storeResult_withH(self, newHash, result, isHeuristic):
-        self.tt.store(newHash, result, isHeuristic)
-        return result
+    def playMove(self, move, currentPlayer, gameState):
+        #This method saves the current hash and returns it.
+        #Does all the necessary steps to simulate playing a move. 
+        oldHash = self.hash
+        self.skip_checks_play(move, currentPlayer, gameState)
+        p = self.pValues[move]
+        self.updateHash(self.hash, self.zobristArray[p][currentPlayer], self.zobristArray[p][0])
+        return oldHash
 
     def storeResult(self, newHash, result):
         self.tt.store(newHash, result)
@@ -612,11 +595,6 @@ class GtpConnection():
         self.zobristArray = []
         for _ in range(self.maxSize):
             self.zobristArray.append([random.getrandbits(64) for _ in range(3)])
-        # self.zobristArray = np.zeros( (self.maxSize,3), dtype=np.int64) 
-        # for i in range(self.maxSize):
-        #     self.zobristArray[i][0] = random.getrandbits(32)
-        #     self.zobristArray[i][1] = random.getrandbits(32)
-        #     self.zobristArray[i][2] = random.getrandbits(32)
 
         #<---Calculate the initial hash value of the board (ignores borders)--->
         self.hash = 0 
@@ -630,15 +608,12 @@ class GtpConnection():
                 count += 1
 
 
-    def evaluation(self ,currentPlayer, terminal, remainingMoves):
-        if terminal:
-            if self.originalPlayer == currentPlayer:
-                return False
-            else:
-                return True
+    def evaluation(self ,currentPlayer, remainingMoves):
+        if self.originalPlayer == currentPlayer:
+            return False
         else:
-            return remainingMoves
-
+            return True
+        
 
     def isTerminal(self, remainingMoves):
         if remainingMoves != 0:
@@ -647,9 +622,7 @@ class GtpConnection():
             return True 
 
     def getLegalMoves(self, gameState):
-        #<---get the empty points--->
-        
-        # tempState = gameState.copy() #Can try to remove this later
+        #This method returns a list containing all of the legal moves for a game state
         moves = gameState.get_empty_points()
         cp = gameState.current_player
         opponent = BLACK + WHITE - cp
@@ -662,6 +635,7 @@ class GtpConnection():
              
             
     def checkMoveLegality(self, m, tempState, cp, opponent):
+        #This method checks if a move is legal. Skips and streamlines unnecessary steps in GoBoardUtil.generate_legal_moves
         neighbors = tempState.neighbors[m]
         totalNeighbors = len(neighbors)
         #check if it is surrounded 
@@ -695,10 +669,14 @@ class GtpConnection():
                     validNeighbors += allyNeighbors
             #<---check if there is valid opponent blocks--->
             tempState.board[m] = cp
+            
             for n in neighbors:
                 if tempState.board[n] == opponent:
                     if self.detectLibertyInBlock(n, tempState, opponent):
                         validNeighbors += 1
+                    else:
+                        tempState.board[m] = EMPTY
+                        return False
 
             if validNeighbors == totalNeighbors:
                 tempState.board[m] = EMPTY
@@ -728,7 +706,6 @@ class GtpConnection():
                         return True
         
         return False
-
 
 
     def comparison(self):
