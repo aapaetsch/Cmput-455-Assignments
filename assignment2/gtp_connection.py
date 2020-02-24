@@ -383,13 +383,13 @@ class GtpConnection():
                 self.pValues[move] = self.getP(move)
         
         try:
-            rootTime = time.time()
+            # rootTime = time.time()
             #<---init for transposition table--->
             self.maxSize = self.board.size * self.board.size
             self.zobrist_init(rootState) #<---self.hash is created in here
             self.tt = TT()
-            stop = time.time()
-            print('Transposition Table setup:', stop-rootTime)
+            # stop = time.time()
+            # print('Transposition Table setup:', stop-rootTime)
 
             remainingMoves = GoBoardUtil.generate_legal_moves(rootState, self.originalPlayer)
             if self.isTerminal(remainingMoves):
@@ -415,23 +415,23 @@ class GtpConnection():
                         winningMove = format_point( point_to_coord(move, self.board.size) )
                         self.respond('{} {}'.format(winningColor, winningMove.lower()))
                         # winningMoveFound = True
-                        print('Total time:', time.time() - rootTime)
+                        # print('Total time:', time.time() - rootTime)
                         # signal.alarm(0)
                         return
                     self..undo(move, rootState)
                     self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][self.originalPlayer])
-                    stop = time.time()#<TIMER
-                    print("Move:", format_point(point_to_coord(move,self.board.size)), 'Time:', stop-start)
+                    # stop = time.time()#<TIMER
+                    # print("Move:", format_point(point_to_coord(move,self.board.size)), 'Time:', stop-start)
             # if not winningMoveFound:
             self.respond('b' if self.originalPlayer == WHITE else 'w')
-            print('Total time:', time.time() - rootTime)
-            # signal.alarm(0)
+            # print('Total time:', time.time() - rootTime)
+            signal.alarm(0)
             return
 
         except:
             self.respond("unknown")
-            print('total time before exit:', time.time() - rootTime, 'Timelimit:', self.time_limit)
-        # signal.alarm(0)
+            # print('total time before exit:', time.time() - rootTime, 'Timelimit:', self.time_limit)
+        signal.alarm(0)
 
 
     #<---Trying to implement an and or version here --->
@@ -462,10 +462,9 @@ class GtpConnection():
             self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][currentPlayer])
             
             if isWin:
-                # self.mirror(gameState, True)
+ 
                 return self.storeResult(self.hash, True)
 
-        # self.mirror(gameState, False)
         return self.storeResult(self.hash, False)
 
 
@@ -475,7 +474,6 @@ class GtpConnection():
         if result != None:
             return result
             
-
         currentPlayer = gameState.current_player
         remainingMoves = GoBoardUtil.generate_legal_moves(gameState, currentPlayer)
 
@@ -497,93 +495,11 @@ class GtpConnection():
             self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][currentPlayer])
 
             if not isWin:
-                # self.mirror(gameState, False)
+      
                 return self.storeResult(self.hash, False)
 
-        # self.mirror(gameState, True)
         return self.storeResult(self.hash, True)
 
-    def mirror(self, gameState, value):
-        start = time.time()
-        tempHashH = self.hash
-        tempHashV = self.hash
-        tempHashMainDiag = self.hash
-        tempHashOffDiag = self.hash
-        divby2 = self.board.size // 2
-        
-        visitedH = []
-        visitedV = []
-        visitedMainDiag = []
-        visitedOffDiag = []
-        for point in range(len(gameState.board)):
-            piece = gameState.board[point]
-            if piece != BORDER:
-                coord = point_to_coord(point, self.board.size)
-                row = coord[0]
-                col = coord[1]
-                #<---get horizontal--->
-                if point not in visitedH:
-                    # for moving L->R
-
-                    if col <= divby2:
-                        mirrorCol = self.board.size - col + 1
-                      
-                    # # for moving R->L 
-                    # elif col >= divby2: 
-                    #     mirrorCol = col - divby2
-                    if mirrorCol != col:
-                        #We update the values
-                        mirrorMove = gameState.pt(row, mirrorCol)
-                        mirrorPiece = gameState.board[mirrorMove]
-                        
-                        if piece != mirrorPiece:
-                            p1 = self.pValues[point]
-                            p2 = self.pValues[mirrorMove]
-                            tempHashH = tempHashH ^ self.zobristArray[p1][piece] ^ self.zobristArray[p2][mirrorPiece] ^ self.zobristArray[p1][mirrorPiece] ^ self.zobristArray[p2][piece]
-                        visitedH.append(mirrorMove)
-
-                if point not in visitedV:
-                    if row <= divby2:
-                        mirrorRow = self.board.size - row + 1
-                    if mirrorRow != row:
-                        mirrorMove = gameState.pt(mirrorRow, col)
-                        mirrorPiece = gameState.board[mirrorMove]
-                        if piece != mirrorPiece:
-                            p1 = self.pValues[point]
-                            p2 = self.pValues[mirrorMove]
-                            tempHashV = tempHashV ^ self.zobristArray[p1][piece] ^ self.zobristArray[p2][mirrorPiece] ^ self.zobristArray[p1][mirrorPiece] ^ self.zobristArray[p2][piece]
-                    visitedV.append(mirrorMove)
-
-                # if point not in visitedMainDiag:
-                #     mirrorRow = self.board.size - row + 1
-                #     mirrorCol = self.board.size - col + 1
-                #     if mirrorRow != col and mirrorCol != row:
-                #         mirrorMove = gameState.pt(mirrorRow, mirrorCol)
-                #         mirrorPiece = gameState.board[mirrorMove]
-                #         if piece != mirrorPiece:
-                #             p1 = self.pValues[point]
-                #             p2 = self.pValues[mirrorMove]
-                #             tempHashMainDiag = tempHashMainDiag ^ self.zobristArray[p1][piece] ^ self.zobristArray[p2][mirrorPiece] ^ self.zobristArray[p1][mirrorPiece] ^ self.zobristArray[p2][piece]
-                #     visitedMainDiag.append(mirrorMove)
-
-                # if point not in visitedOffDiag:
-                #     mirrorRow = col
-                #     mirrorCol = row
-                #     if mirrorRow != row and mirrorCol != col:
-                #         mirrorMove = gameState.pt(mirrorRow, mirrorCol)
-                #         mirrorPiece = gameState.board[mirrorMove]
-                #         if piece != mirrorPiece:
-                #             p1 = self.pValues[point]
-                #             p2 = self.pValues[mirrorMove]
-                #             tempHashOffDiag = tempHashOffDiag ^ self.zobristArray[p1][piece] ^ self.zobristArray[p2][mirrorPiece] ^ self.zobristArray[p1][mirrorPiece] ^ self.zobristArray[p2][piece]
-                #     visitedOffDiag.append(mirrorMove)
-
-        self.storeResult(tempHashH, value)
-        self.storeResult(tempHashV, value)
-        # self.storeResult(tempHashMainDiag, value)
-        # self.storeResult(tempHashOffDiag, value)
-        # print("Time for mirror:", time.time()- start)
-        #<---get Vertical--->
 
     def storeResult_withH(self, newHash, result, isHeuristic):
         self.tt.store(newHash, result, isHeuristic)
