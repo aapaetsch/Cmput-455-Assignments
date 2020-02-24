@@ -1,3 +1,4 @@
+
 """
 gtp_connection.py
 Module for playing games of Go using GoTextProtocol
@@ -16,11 +17,14 @@ import time
 import random
 import signal
 from TranspositionTable import TT
+alarmTime = 0
+
 
 class TimeException(Exception):
     pass
 
 def handler(signum, frame):
+    alarmTIME = time.time()
     raise TimeException
 
 signal.signal(signal.SIGALRM, handler)
@@ -296,8 +300,6 @@ class GtpConnection():
         sorted_moves = ' '.join(sorted(gtp_moves))
         self.respond(sorted_moves)
 
-    
-
     def gogui_rules_legal_moves_cmd(self, args):
         empties = self.board.get_empty_points()
         color = self.board.current_player
@@ -356,41 +358,53 @@ class GtpConnection():
                      "pstring/Rules GameID/gogui-rules_game_id\n"
                      "pstring/Show Board/gogui-rules_board\n"
                      )
+    def undo(self, move, gameState):
+        gameState.board[move] = EMPTY
+        cp = gameState.current_player
+        gameState.current_player = BLACK if cp == WHITE else WHITE
 
-
+    def skip_checks_play(self, move, color, gameState):
+        gameState.board[move] = color
+        cp = gameState.current_player
+        gameState.current_player = BLACK if cp == WHITE else WHITE
 
     def time_limit_cmd(self, args):
         assert 1 <= int(args[0]) <= 100
         self.time_limit = int(args[0])
 
     def solve_cmd(self, args):
-        signal.alarm(self.time_limit)
+        self.totalStates = 0
+        # signal.alarm(self.time_limit)
         # winningMoveFound =  False
         self.originalPlayer = self.board.current_player
         rootState = self.board.copy()
+        self.pValues = {}
+        for move in range(len(rootState.board)):
+            if rootState.board[move] not BORDER:
+                self.pValues[move] = self.getP(move)
         
         try:
-            rootTime = time.time()
+            # rootTime = time.time()
             #<---init for transposition table--->
             self.maxSize = self.board.size * self.board.size
             self.zobrist_init(rootState) #<---self.hash is created in here
             self.tt = TT()
-            stop = time.time()
-            print('Transposition Table setup:', stop-rootTime)
+            # stop = time.time()
+            # print('Transposition Table setup:', stop-rootTime)
 
             remainingMoves = GoBoardUtil.generate_legal_moves(rootState, self.originalPlayer)
             if self.isTerminal(remainingMoves):
                 #<---If a move is terminal right away, we assume we are in P-Position--->
                 self.respond('b' if self.originalPlayer == WHITE else 'w')
-
+                signal.alarm(0)
             else:
 
                 for move in remainingMoves:
                     start = time.time() #<TIMER
-                    rootState.play_move(move, self.originalPlayer)
+                    self.skip_checks_play(move, self.originalPlayer, rootState)
                     
                     #<---Update the current hash value (prevents having to recalculate it)--->
-                    p = self.getP(move)
+                    p = self.pValues[move]
                     self.updateHash(self.hash, self.zobristArray[p][self.originalPlayer], self.zobristArray[p][0])
                    
                     
@@ -402,27 +416,26 @@ class GtpConnection():
                         winningMove = format_point( point_to_coord(move, self.board.size) )
                         self.respond('{} {}'.format(winningColor, winningMove.lower()))
                         # winningMoveFound = True
-                        print('Total time:', time.time() - rootTime)
+                        # print('Total time:', time.time() - rootTime)
+                        # signal.alarm(0)
                         return
-                    rootState.undo(move)
+                    self..undo(move, rootState)
                     self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][self.originalPlayer])
-                    stop = time.time()#<TIMER
-                    print("Move:", format_point(point_to_coord(move,self.board.size)), 'Time:', stop-start)
+                    # stop = time.time()#<TIMER
+                    # print("Move:", format_point(point_to_coord(move,self.board.size)), 'Time:', stop-start)
             # if not winningMoveFound:
             self.respond('b' if self.originalPlayer == WHITE else 'w')
-            print('Total time:', time.time() - rootTime)
+            # print('Total time:', time.time() - rootTime)
+            signal.alarm(0)
             return
 
         except:
             self.respond("unknown")
-            print('total time before exit:', time.time() - rootTime)
+            # print('total time before exit:', time.time() - rootTime, 'Timelimit:', self.time_limit)
         signal.alarm(0)
-        
-
 
 
     #<---Trying to implement an and or version here --->
-    
     def minmax_bool_or(self, gameState):
         #<---Check the transposition table if this node has been found --->
         result = self.tt.lookup(self.hash)
@@ -436,30 +449,32 @@ class GtpConnection():
             return self.storeResult(self.hash, self.evaluation(currentPlayer))
 
         for move in remainingMoves:
-            gameState.play_move(move, currentPlayer)
+            self..skip_checks_play(move, currentPlayer, gameState)
 
             #<-- updating the hash value --->
-            p = self.getP(move)
+            p = self.pValues[move]
             self.updateHash(self.hash, self.zobristArray[p][currentPlayer], self.zobristArray[p][0])
 
             #<---call minmax AND node--->
             isWin = self.minmax_bool_and(gameState)
         
             #<---Revert the hash and gameState back to the previous value--->
-            gameState.undo(move)
+            self.undo(move, gameState)
             self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][currentPlayer])
             
             if isWin:
+ 
                 return self.storeResult(self.hash, True)
-        
+
         return self.storeResult(self.hash, False)
+
 
     def minmax_bool_and(self, gameState):
         #<---Check the transposition table if this node has been found--->
         result = self.tt.lookup(self.hash)
         if result != None:
             return result
-
+            
         currentPlayer = gameState.current_player
         remainingMoves = GoBoardUtil.generate_legal_moves(gameState, currentPlayer)
 
@@ -467,23 +482,29 @@ class GtpConnection():
             return self.storeResult(self.hash, self.evaluation(currentPlayer))
         
         for move in remainingMoves:
-            gameState.play_move(move, currentPlayer)
+            self.skip_checks_play(move, currentPlayer, gameState)
             
             #<-- updating the hash value --->
-            p = self.getP(move)
+            p = self.pValues[move]
             self.updateHash(self.hash, self.zobristArray[p][currentPlayer], self.zobristArray[p][0])
 
             #<---Call minmax OR node--->
             isWin = self.minmax_bool_or(gameState)
         
             #<---Revert the hash and gameState back to the previous value--->
-            gameState.undo(move)
+            self.undo(move, gameState)
             self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][currentPlayer])
 
             if not isWin:
+      
                 return self.storeResult(self.hash, False)
+
         return self.storeResult(self.hash, True)
 
+
+    def storeResult_withH(self, newHash, result, isHeuristic):
+        self.tt.store(newHash, result, isHeuristic)
+        return result
 
     def storeResult(self, newHash, result):
         self.tt.store(newHash, result)
@@ -505,28 +526,36 @@ class GtpConnection():
         self.zobristArray = []
         for _ in range(self.maxSize):
             self.zobristArray.append([random.getrandbits(64) for _ in range(3)])
+        # self.zobristArray = np.zeros( (self.maxSize,3), dtype=np.int64) 
+        # for i in range(self.maxSize):
+        #     self.zobristArray[i][0] = random.getrandbits(32)
+        #     self.zobristArray[i][1] = random.getrandbits(32)
+        #     self.zobristArray[i][2] = random.getrandbits(32)
 
         #<---Calculate the initial hash value of the board (ignores borders)--->
         self.hash = 0 
         count = 0 
         for point in gameState.board:
             if point != BORDER:
-                self.hash = self.hash ^ self.zobristArray[count][point]
+                if count == 0:
+                    self.hash = self.zobristArray[count][point]
+                else:
+                    self.hash = self.hash ^ self.zobristArray[count][point]
                 count += 1
 
 
     def evaluation(self ,currentPlayer):
         if self.originalPlayer == currentPlayer:
-            return False
+            return 0
         else:
-            return True
+            return 1
 
     def isTerminal(self, remainingMoves):
         if len(remainingMoves) != 0:
             return False
-
         else:
             return True 
+
 
 
 def point_to_coord(point, boardsize):
