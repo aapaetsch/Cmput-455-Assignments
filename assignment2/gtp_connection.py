@@ -421,13 +421,13 @@ class GtpConnection():
                 self.pValues[move] = self.getP(move)
         
         # try:
-        rootTime = time.time()
+        self.rootTime = time.time()
         #<---init for transposition table--->
         self.maxSize = self.board.size * self.board.size
         self.zobrist_init(rootState) #<---self.hash is created in here
         self.tt = TT()
         stop = time.time()
-        print('Transposition Table setup:', stop-rootTime)
+        print('Transposition Table setup:', stop-self.rootTime)
         depth = 1
 
         # #<---FOR LEGAL MOVE TESTING--->
@@ -449,44 +449,20 @@ class GtpConnection():
             #<---If a move is terminal right away, we assume we are in P-Position--->
             m = 'b' if self.originalPlayer == WHITE else 'w'
             self.respond(m)
-            self.comparison()#<___REMOVE LATER___>
+            # self.comparison()#<___REMOVE LATER___>
             return m 
             # signal.alarm(0)
         else:
 
-            for move in remainingMoves:
-                start = time.time() #<TIMER
-                self.skip_checks_play(move, self.originalPlayer, rootState)
-                
-                #<---Update the current hash value (prevents having to recalculate it)--->
-                p = self.pValues[move]
-                self.updateHash(self.hash, self.zobristArray[p][self.originalPlayer], self.zobristArray[p][0])
-               
-                
-                #<---Call minmax algorithm--->
-                isWin = self.minmax_bool_and(rootState, depth)
-                
-                if isWin:
-                    winningColor = 'b' if self.originalPlayer == BLACK else 'w'
-                    winningMove = format_point( point_to_coord(move, self.board.size) )
-                    self.respond('{} {}'.format(winningColor, winningMove.lower()))
-                    # winningMoveFound = True
-                    print('Total time:', time.time() - rootTime)
-                    # signal.alarm(0)
-                    # self.comparison()#<___REMOVE LATER___>
-                    return '{} {}'.format(winningColor, winningMove.lower())
-
-                self.undo(move, rootState)
-                self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][self.originalPlayer])
-                stop = time.time()#<TIMER
-                print("Move:", format_point(point_to_coord(move,self.board.size)), 'Time:', stop-start)
-                
-                # self.comparison()
+            minmaxResult = self.call_minMax(rootState, 1, remainingMoves)
+            if minmaxResult != False:
+                return minmaxResult
+            
 
         # if not winningMoveFound:
         m = 'b' if self.originalPlayer == WHITE else 'w'
         self.respond(m)
-        print('Total time:', time.time() - rootTime)
+        print('Total time:', time.time() - self.rootTime)
         # signal.alarm(0)
         # self.comparison()#<___REMOVE LATER___>
         return m
@@ -500,7 +476,31 @@ class GtpConnection():
             
         # signal.alarm(0)
 
-    
+    def call_minMax(self, gameState, depth, remainingMoves):
+        for move in remainingMoves:
+            start = time.time()
+            self.skip_checks_play(move, self.originalPlayer, gameState)
+            p = self.pValues[move]
+            oldHash = self.hash
+            self.updateHash(self.hash, self.zobristArray[p][self.originalPlayer], self.zobristArray[p][0])
+
+            isWin = self.minmax_bool_and(gameState, depth)
+
+            if isWin:
+                winningColor = 'b' if self.originalPlayer == BLACK else 'w'
+                winningMove = format_point(point_to_coord(move, self.board.size))
+                response = '{} {}'.format(winningColor, winningMove.lower())
+                self.respond(response)
+                print('Total Time:', time.time() - self.rootTime )
+                # self.comparison()
+                return response
+            self.undo(move, gameState)
+            self.hash = oldHash
+            print("Move:", format_point(point_to_coord(move,self.board.size)), 'Time:', time.time()-start)
+            # self.comparison()
+        return False
+
+
 
 
     #<---Trying to implement an and or version here --->
@@ -512,18 +512,7 @@ class GtpConnection():
 
         currentPlayer = gameState.current_player
 
-        # #<---My testing--->
-        # legalMoveTime = time.time()
-        # remainingMoves = GoBoardUtil.generate_legal_moves(gameState, currentPlayer)
-        # self.builtinTimes.append(time.time()-legalMoveTime)
-        # self.builtin.append(remainingMoves)
-
-        # myTime = time.time()
-        # myRemaining = self.getLegalMoves(gameState)
-        # self.myTimes.append(time.time()-myTime)
-        # self.my.append(myRemaining)
-
-        # #<---End of testing--->
+       
         remainingMoves = self.getLegalMoves(gameState)
         remainingCount = len(remainingMoves)
         terminalState = self.isTerminal(remainingCount)
@@ -535,6 +524,7 @@ class GtpConnection():
 
             #<-- updating the hash value --->
             p = self.pValues[move]
+            oldHash = self.hash
             self.updateHash(self.hash, self.zobristArray[p][currentPlayer], self.zobristArray[p][0])
 
             #<---call minmax AND node--->
@@ -542,8 +532,7 @@ class GtpConnection():
         
             #<---Revert the hash and gameState back to the previous value--->
             self.undo(move, gameState)
-            self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][currentPlayer])
-            
+            self.hash = oldHash
             if isWin:
  
                 return self.storeResult(self.hash, True)
@@ -584,6 +573,7 @@ class GtpConnection():
             
             #<-- updating the hash value --->
             p = self.pValues[move]
+            oldHash = self.hash
             self.updateHash(self.hash, self.zobristArray[p][currentPlayer], self.zobristArray[p][0])
 
             #<---Call minmax OR node--->
@@ -591,10 +581,8 @@ class GtpConnection():
         
             #<---Revert the hash and gameState back to the previous value--->
             self.undo(move, gameState)
-            self.updateHash(self.hash, self.zobristArray[p][0], self.zobristArray[p][currentPlayer])
-
+            self.hash = oldHash
             if not isWin:
-      
                 return self.storeResult(self.hash, False)
 
         return self.storeResult(self.hash, True)
@@ -695,27 +683,53 @@ class GtpConnection():
             return False
 
         if allyNeighbors > 0 and oppNeighbors == 0:
-            return self.detectLibertyInAllyBlock(m, tempState, cp)
+            if emptyNeighbors == 0:
+                return self.detectLibertyInBlock(m, tempState, cp)
+            else:
+                return True
 
+        elif oppNeighbors > 0:
+            validNeighbors = emptyNeighbors 
+            if allyNeighbors > 0:
+                if self.detectLibertyInBlock(m, tempState, cp):
+                    validNeighbors += allyNeighbors
+            #<---check if there is valid opponent blocks--->
+            tempState.board[m] = cp
+            for n in neighbors:
+                if tempState.board[n] == opponent:
+                    if self.detectLibertyInBlock(n, tempState, opponent):
+                        validNeighbors += 1
+
+            if validNeighbors == totalNeighbors:
+                tempState.board[m] = EMPTY
+                return True
+            tempState.board[m] = EMPTY
+            return False
+        
         if tempState.is_legal(m, cp):
             return True
         return False
 
-    def detectLibertyInAllyBlock(self, m, tempState, cp):
+    def detectLibertyInBlock(self, m, tempState, player):
         visited = np.full(tempState.maxpoint, False, dtype=bool)
         #<---Detect if there is at least 1 liberty for my block--->
         stack = [m]
         visited[m] = True
+        
         while stack:
             point = stack.pop()
             for nb in tempState.neighbors[point]:
                 if not visited[nb]:
-                    if tempState.board[nb] == cp:
+                    if tempState.board[nb] == player:
                         stack.append(nb)
                         visited[nb] = True
                     elif tempState.board[nb] == EMPTY:
+                        
                         return True
+        
         return False
+
+
 
     def comparison(self):
         sumBuiltinTime = sum(self.builtinTimes)
@@ -734,7 +748,7 @@ class GtpConnection():
         for i in range(len(notEqual)):
             print('\t', notEqual[i])
         print('\tTotal not equal: {}'.format(str(len(notEqual))))
-        input()
+     
 
 
 
