@@ -273,7 +273,7 @@ class GtpConnection():
         moves = GoBoardUtil.generate_legal_moves(self.board, color)
         #if game is not over
         if len(moves) > 0:
-            output = self.solve_cmd(args)
+            output = self.solve_cmd('genmove')
             if output != "unknown" and output != "b" and output != "w": 
                 output_move = output[2:]
                 m = move_to_coord(output_move,self.board.size)
@@ -391,10 +391,14 @@ class GtpConnection():
         #This method sets the timelimit. 
         assert 1 <= int(args[0]) <= 100
         self.time_limit = int(args[0])
-        self.respond("")
+        self.respond()
 
     def solve_cmd(self, args):
         
+        response = True
+        if args == 'genmove':
+            response = False
+
         signal.alarm(self.time_limit)
         foundResult = False
         self.originalPlayer = self.board.current_player
@@ -416,26 +420,22 @@ class GtpConnection():
             if self.isTerminal(remainingCount):
                 #<---If a move is terminal right away, we assume we are in P-Position--->
                 result = 'b' if self.originalPlayer == WHITE else 'w'
-                self.respond(result)
                 foundResult = True
-                
 
             else:
                 result = self.call_minMax(rootState, remainingMoves)
                 if result != False :
-                    self.respond(result)
                     foundResult = True
-                    signal.alarm(0)
-                    return result
             
             if not foundResult: 
                 result = 'b' if self.originalPlayer == WHITE else 'w'
-                self.respond(result)
             
         except:
             result = 'unknown'
-            self.respond(result)
-            
+        
+        if response:
+            self.respond(result)    
+        
         signal.alarm(0)
         return result
         
