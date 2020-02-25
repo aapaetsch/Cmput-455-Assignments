@@ -393,7 +393,7 @@ class GtpConnection():
     def solve_cmd(self, args):
         
         signal.alarm(self.time_limit)
-
+        foundResult = False
         self.originalPlayer = self.board.current_player
         rootState = self.board.copy()
         self.pValues = {}
@@ -414,25 +414,24 @@ class GtpConnection():
                 #<---If a move is terminal right away, we assume we are in P-Position--->
                 m = 'b' if self.originalPlayer == WHITE else 'w'
                 self.respond(m)
-                signal.alarm(0)
-                return m 
+                foundResult = True
+                
 
             else:
                 minmaxResult = self.call_minMax(rootState, remainingMoves)
                 if minmaxResult != False :
                     self.respond(minmaxResult)
-                    
-            m = 'b' if self.originalPlayer == WHITE else 'w'
-            self.respond(m)
-            signal.alarm(0)
-            # return m
-
+                    foundResult = True
+            
+            if not foundResult: 
+                m = 'b' if self.originalPlayer == WHITE else 'w'
+                self.respond(m)
+            
         except:
             self.respond("unknown")
-            signal.alarm(0)
-            # return 'unknown'
             
         signal.alarm(0)
+        return
 
     def call_minMax(self, gameState, remainingMoves):
         for move in remainingMoves:
