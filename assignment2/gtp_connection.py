@@ -280,13 +280,13 @@ class GtpConnection():
                 move = self.board.pt(m[0],m[1])
                 if self.board.is_legal(move, color):
                     self.board.play_move(move, color)
-                    self.respond(ouptut_move)
+                    self.respond(output_move)
                 else:
                     self.respond("resign")
             else: #generate random move
                 move = self.go_engine.get_move(self.board, color)
                 move_coord = point_to_coord(move, self.board.size)
-                move_as_string = format_point(move_coord)
+                move_as_string = format_point(move_coord).lower()
                 if self.board.is_legal(move, color):
                     self.board.play_move(move, color)
                     self.respond(move_as_string)
