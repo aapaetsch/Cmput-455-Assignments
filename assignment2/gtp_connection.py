@@ -445,7 +445,7 @@ class GtpConnection():
             self.respond("unknown")
             
         signal.alarm(0)
-        return
+        
 
     def call_minMax(self, gameState, remainingMoves):
         for move in remainingMoves:
