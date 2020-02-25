@@ -1,0 +1,22 @@
+Script started on Mon 24 Feb 2020 07:42:09 PM MST
+paetsch@ug19:~/Documents/Cmput-455-Assignments>mkdir test
+paetsch@ug19:~/Documents/Cmput-455-Assignments>cp assignment2.tgz test/assignment2.tgz
+paetsch@ug19:~/Documents/Cmput-455-Assignments>cd test
+paetsch@ug19:~/Documents/Cmput-455-Assignments/test>tar =-[K[K-xvf assignment2.tgz 
+assignment2/
+assignment2/gtp_connection.py
+assignment2/simple_board.py
+assignment2/newTests.gtp
+assignment2/a2-sample.gtp
+assignment2/assignment2-public-tests.gtp
+assignment2/Nogo.py
+assignment2/.gitignore
+assignment2/board_util.py
+assignment2/TranspositionTable.py
+assignment2/testing.gtp
+paetsch@ug19:~/Documents/Cmput-455-Assignments/test>cd assignment2
+paetsch@ug19:~/Documents/Cmput-455-Assignments/test/assignment2>gogui-regress Nogo.py assignment2-public-tests.gtp 
+paetsch@ug19:~/Documents/Cmput-455-Assignments/test/assignment2>exit
+exit
+
+Script done on Mon 24 Feb 2020 07:48:29 PM MST
