@@ -79,7 +79,7 @@ class GtpConnection():
             "genmove": (1, 'Usage: genmove {w,b}'),
             "play": (2, 'Usage: play {b,w} MOVE'),
             "legal_moves": (1, 'Usage: legal_moves {w,b}'),
-            "timelimit":(1, "Usage: timelimit INT")
+            "timelimit":(1, 'Usage: timelimit INT')
         }
     
     def write(self, data):
@@ -272,7 +272,7 @@ class GtpConnection():
         #if game is not over
         if len(moves) > 0:
             ouput = self.solve_cmd(self.board)
-            if output != "unkonwn" and ouput != "b" and output != "w": 
+            if output != "unknown" and ouput != "b" and output != "w": 
                 output_move = ouput[2:]
                 m = move_to_coord(output_move,self.board.size)
                 move = self.board.pt(m[0],m[1])
@@ -388,6 +388,7 @@ class GtpConnection():
         #This method sets the timelimit. 
         assert 1 <= int(args[0]) <= 100
         self.time_limit = int(args[0])
+        self.respond("")
 
     def solve_cmd(self, args):
         
@@ -419,17 +420,17 @@ class GtpConnection():
             else:
                 minmaxResult = self.call_minMax(rootState, remainingMoves)
                 if minmaxResult != False :
-                    return minmaxResult
+                    self.respond(minmaxResult)
                     
             m = 'b' if self.originalPlayer == WHITE else 'w'
             self.respond(m)
             signal.alarm(0)
-            return m
+            # return m
 
         except:
             self.respond("unknown")
             signal.alarm(0)
-            return 'unknown'
+            # return 'unknown'
             
         signal.alarm(0)
 
@@ -445,7 +446,7 @@ class GtpConnection():
                 winningColor = 'b' if self.originalPlayer == BLACK else 'w'
                 winningMove = format_point(point_to_coord(move, self.board.size))
                 response = '{} {}'.format(winningColor, winningMove.lower())
-                self.respond(response)
+                
                 return response
 
             self.undo(move, gameState)
