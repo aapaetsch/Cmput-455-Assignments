@@ -264,48 +264,35 @@ class GtpConnection():
             self.respond('illegal move: \"{} {}\" {}'.format(args[0], args[1], str(e)))
 
      
-    # def genmove_cmd(self, args):
-    #     """
-    #     Generate a move for the color args[0] in {'b', 'w'}, for the game of gomoku.
-    #     """
-    #     board_color = args[0].lower()
-    #     color = color_to_int(board_color)
-    #     moves = GoBoardUtil.generate_legal_moves(self.board, color)
-    #     #if game is not over
-    #     if len(moves) > 0:
-    #         ouput = self.solve_cmd(self.board)
-    #         if output != "unknown" and ouput != "b" and output != "w": 
-    #             output_move = ouput[2:]
-    #             m = move_to_coord(output_move,self.board.size)
-    #             move = self.board.pt(m[0],m[1])
-    #             if self.board.is_legal(move, color):
-    #                 self.board.play_move(move, color)
-    #                 self.respond(ouptut_move)
-    #             else:
-    #                 self.respond("resign")
-    #         else: #generate random move
-    #             move = self.go_engine.get_move(self.board, color)
-    #             move_coord = point_to_coord(move, self.board.size)
-    #             move_as_string = format_point(move_coord)
-    #             if self.board.is_legal(move, color):
-    #                 self.board.play_move(move, color)
-    #                 self.respond(move_as_string)
-    #             else:
-    #                 self.respond("resign")
-    #     else:
-    #         self.respond("resign")
     def genmove_cmd(self, args):
         """
         Generate a move for the color args[0] in {'b', 'w'}, for the game of gomoku.
         """
+        
         board_color = args[0].lower()
         color = color_to_int(board_color)
-        move = self.go_engine.get_move(self.board, color)
-        move_coord = point_to_coord(move, self.board.size)
-        move_as_string = format_point(move_coord)
-        if self.board.is_legal(move, color):
-            self.board.play_move(move, color)
-            self.respond(move_as_string)
+        moves = GoBoardUtil.generate_legal_moves(self.board, color)
+        #if game is not over
+        if len(moves) > 0:
+            output = self.solve_cmd(moves)
+            if output != "unknown" and output != "b" and output != "w": 
+                output_move = output[2:]
+                m = move_to_coord(output_move,self.board.size)
+                move = self.board.pt(m[0],m[1])
+                if self.board.is_legal(move, color):
+                    self.board.play_move(move, color)
+                    self.respond(output_move)
+                else:
+                    self.respond("resign")
+            else: #generate random move
+                move = self.go_engine.get_move(self.board, color)
+                move_coord = point_to_coord(move, self.board.size)
+                move_as_string = format_point(move_coord).lower()
+                if self.board.is_legal(move, color):
+                    self.board.play_move(move, color)
+                    self.respond(move_as_string)
+                else:
+                    self.respond("resign")
         else:
             self.respond("resign")
 
@@ -428,25 +415,30 @@ class GtpConnection():
 
             if self.isTerminal(remainingCount):
                 #<---If a move is terminal right away, we assume we are in P-Position--->
-                m = 'b' if self.originalPlayer == WHITE else 'w'
-                self.respond(m)
+                result = 'b' if self.originalPlayer == WHITE else 'w'
+                self.respond(result)
                 foundResult = True
                 
 
             else:
-                minmaxResult = self.call_minMax(rootState, remainingMoves)
-                if minmaxResult != False :
-                    self.respond(minmaxResult)
+                result = self.call_minMax(rootState, remainingMoves)
+                if result != False :
+                    self.respond(result)
                     foundResult = True
+
             
             if not foundResult: 
-                m = 'b' if self.originalPlayer == WHITE else 'w'
-                self.respond(m)
+                result = 'b' if self.originalPlayer == WHITE else 'w'
+                self.respond(result)
             
         except:
-            self.respond("unknown")
+            result = 'unknown'
+            self.respond(result)
+
             
         signal.alarm(0)
+        return result
+
         
 
     def call_minMax(self, gameState, remainingMoves):
