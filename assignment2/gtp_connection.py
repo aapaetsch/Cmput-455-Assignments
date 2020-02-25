@@ -466,7 +466,7 @@ class GtpConnection():
 
         except:
             self.respond("unknown")
-            print('total time before exit:', time.time() - rootTime, 'Timelimit:', self.time_limit)
+            print('total time before exit:', time.time() - self.rootTime, 'Timelimit:', self.time_limit)
             signal.alarm(0)
             # self.comparison()#<___REMOVE LATER___>
             return 'unknown'
