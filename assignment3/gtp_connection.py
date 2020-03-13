@@ -29,9 +29,6 @@ class GtpConnection():
         self._debug_mode = debug_mode
         self.go_engine = go_engine
         self.board = board
-        self.numSim = 10
-        self.selection = 'rr'
-        self.policyType = 'random'
         self.commands = {
             "protocol_version": self.protocol_version_cmd,
             "quit": self.quit_cmd,
@@ -46,10 +43,6 @@ class GtpConnection():
             "list_commands": self.list_commands_cmd,
             "play": self.play_cmd,
             "legal_moves": self.legal_moves_cmd,
-            "policy": self.policy_cmd,
-            "selection": self.selection_cmd,
-            "policy_moves": self.policy_moves_cmd,
-            "num_sim": self.num_sim_cmd,
             "gogui-rules_game_id": self.gogui_rules_game_id_cmd,
             "gogui-rules_board_size": self.gogui_rules_board_size_cmd,
             "gogui-rules_legal_moves": self.gogui_rules_legal_moves_cmd,
@@ -69,9 +62,6 @@ class GtpConnection():
             "genmove": (1, 'Usage: genmove {w,b}'),
             "play": (2, 'Usage: play {b,w} MOVE'),
             "legal_moves": (1, 'Usage: legal_moves {w,b}'),
-            "policy": (1, 'Usage: policy {random, pattern}'),
-            "selection": (1, 'Usage: selection {rr, ubc}'),
-            "num_sim": (1, "Usage: num_sim INT")
         }
     
     def write(self, data):
@@ -346,38 +336,6 @@ class GtpConnection():
                      "pstring/Rules GameID/gogui-rules_game_id\n"
                      "pstring/Show Board/gogui-rules_board\n"
                      )
-
-    def policy_cmd(self, args):
-        try:
-            policy = args[1].lower()
-            if policy == 'random' or policy == 'pattern':
-                self.policyType = policy
-                self.respond("")
-            else:
-                raise Exception
-        except:
-            self.respond("unknown")
-
-    def selection_cmd(self, args):
-        try:
-            selection = args[1].lower()
-            if selection == 'rr' or selection == 'ucb':
-                self.selection = selection
-                self.respond('')
-            else:
-                raise Exception
-        except:
-            self.respond('unknown')
-
-    def policy_moves_cmd(self, args):
-        pass
-
-    def num_sim_cmd(self, args):
-        assert int(args[1])
-        self.num_sim = int(args[1])
-        self.respond('')
-        
-
 
 
 def point_to_coord(point, boardsize):

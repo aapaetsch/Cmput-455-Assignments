@@ -2,7 +2,7 @@
 #/usr/bin/python3
 # Set the path to your python3 above
 
-from gtp_connection import GtpConnection
+from gtp_connection_nogo3 import GtpConnectionNoGo3
 from board_util import GoBoardUtil
 from simple_board import SimpleGoBoard
 
@@ -20,14 +20,24 @@ class Nogo():
         
     def get_move(self, board, color):
         return GoBoardUtil.generate_random_move(board, color, False)
+
+    def simulate(self, board, move, toplay):
+        pass
+
+    
     
 def run():
     """
     start the gtp connection and wait for commands.
     """
     board = SimpleGoBoard(7)
-    con = GtpConnection(Nogo(), board)
+    con = GtpConnectionNoGo3(Nogo(), board)
     con.start_connection()
+
+def parse_args():
+    #<---Not sure if this is needed--->
+    pass
+
 
 if __name__=='__main__':
     run()
