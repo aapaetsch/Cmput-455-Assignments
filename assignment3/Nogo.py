@@ -5,6 +5,7 @@
 from gtp_connection_nogo3 import GtpConnectionNoGo3
 from board_util import GoBoardUtil
 from simple_board import SimpleGoBoard
+from legalMoveGen import getLegalMoves
 
 
 class Nogo():
@@ -24,7 +25,27 @@ class Nogo():
     def simulate(self, board, move, toplay):
         pass
 
-    
+    def simulateMove(self, board, move, toplay):
+        #<---simulation for a given move--->
+        wins = 0 
+        for _ in range(   ):
+            result = self.simulate(board, move, toplay)
+            if result == toplay:
+                wins += 1
+        return wins
+        
+    def get_move(self, board, color):
+        tempBoard = board.copy()
+        legalMoves = getLegalMoves(tempBoard)
+        if not moves:
+            return None
+
+        legalMoves.append(None)
+        pass
+        #<---got to implememnt the two versions here --->
+
+
+
     
 def run():
     """
