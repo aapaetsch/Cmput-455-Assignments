@@ -23,7 +23,12 @@ class Nogo():
         return GoBoardUtil.generate_random_move(board, color, False)
 
     def simulate(self, board, move, toplay):
-        pass
+        tempBoard = board.copy()
+        #<---Play move can be optimized if this is slow --->
+        tempBoard.play_move(move, toplay)
+        opp = BLACK + WHITE - toplay
+        #return PatternUtil.playGame(tempBoard, opp, ...)
+        
 
     def simulateMove(self, board, move, toplay):
         #<---simulation for a given move--->
@@ -33,7 +38,7 @@ class Nogo():
             if result == toplay:
                 wins += 1
         return wins
-        
+
     def get_move(self, board, color):
         tempBoard = board.copy()
         legalMoves = getLegalMoves(tempBoard)
