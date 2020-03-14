@@ -61,7 +61,7 @@ class GtpConnection():
             "known_command": (1, 'Usage: known_command CMD_NAME'),
             "genmove": (1, 'Usage: genmove {w,b}'),
             "play": (2, 'Usage: play {b,w} MOVE'),
-            "legal_moves": (1, 'Usage: legal_moves {w,b}'),
+            "legal_moves": (1, 'Usage: legal_moves {w,b}')
         }
     
     def write(self, data):
@@ -243,20 +243,20 @@ class GtpConnection():
         except Exception as e:
             self.respond('illegal move: \"{} {}\" {}'.format(args[0], args[1], str(e)))
 
-    def genmove_cmd(self, args):
-        """
-        Generate a move for the color args[0] in {'b', 'w'}, for the game of gomoku.
-        """
-        board_color = args[0].lower()
-        color = color_to_int(board_color)
-        move = self.go_engine.get_move(self.board, color)
-        move_coord = point_to_coord(move, self.board.size)
-        move_as_string = format_point(move_coord)
-        if self.board.is_legal(move, color):
-            self.board.play_move(move, color)
-            self.respond(move_as_string)
-        else:
-            self.respond("resign")
+    # def genmove_cmd(self, args):
+    #     """
+    #     Generate a move for the color args[0] in {'b', 'w'}, for the game of gomoku.
+    #     """
+    #     board_color = args[0].lower()
+    #     color = color_to_int(board_color)
+    #     move = self.go_engine.get_move(self.board, color)
+    #     move_coord = point_to_coord(move, self.board.size)
+    #     move_as_string = format_point(move_coord)
+    #     if self.board.is_legal(move, color):
+    #         self.board.play_move(move, color)
+    #         self.respond(move_as_string)
+    #     else:
+    #         self.respond("resign")
 
     def gogui_rules_game_id_cmd(self, args):
         self.respond("NoGo")

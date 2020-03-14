@@ -67,6 +67,11 @@ def checkMoveLegality(self, m, s, cp, op):
         return True
     return False
 
+def findConnectedNB(self, s, NBs: list, opponent: int ) -> list:
+    #<---We can add this if we need a speed up--->
+    pass
+
+
 def detectLibertyInBlock(self, m, s, p):
     #<---Detects if a block has a liberty--->
     #<---move (m), gameState (s), player (p)--->

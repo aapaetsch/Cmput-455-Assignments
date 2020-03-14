@@ -23,15 +23,22 @@ class GtpConnectionNoGo3(GtpConnection):
 
     def num_sim_cmd(self, args):
         assert int(args[0])
-        self.go_engine.sim = int(args[0])
+        self.go_engine.num_sim = int(args[0])
         self.respond()
 
     def selection_cmd(self, args):
-        pass
+        assert args[0] == 'rr' or args[0] == 'ucb'
+        self.go_engine.selection = args[0]
+        self.respond()
 
     def policy_cmd(self, args):
-        pass
+        assert args[0] == 'random' or args[0] == 'pattern'
+        self.go_engine.policy = args[0]
+        self.respond()
 
     def policy_moves_cmd(self, args):
         pass
 
+
+    def genmove_cmd(self, args):
+        pass
