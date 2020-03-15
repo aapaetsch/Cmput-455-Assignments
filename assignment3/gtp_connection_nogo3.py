@@ -1,6 +1,6 @@
 
 
-
+from legalMoveGen import getLegalMoves
 from gtp_connection import GtpConnection, point_to_coord, format_point
 from board_util import GoBoardUtil, BLACK, WHITE, EMPTY, BORDER, PASS, MAXSIZE, coord_to_point
 BLACK = 1
@@ -47,5 +47,8 @@ class GtpConnectionNoGo3(GtpConnection):
             returnValue.append(str(sortedList[key]))
         self.respond('{} {}'.format(' '.join(returnKey), ' '.join(returnValue)))
 
+
     def genmove_cmd(self, args):
         pass
+        self.go_engine.genmove
+        self.respond()
