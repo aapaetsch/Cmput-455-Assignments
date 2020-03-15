@@ -37,37 +37,15 @@ class GtpConnectionNoGo3(GtpConnection):
         self.respond()
 
     def policy_moves_cmd(self, args):
-        "
-        moves = getLegalMoves()
-        movelist = []
-        returnstring = ""
-        for move in moves:
-            move = GtpConnection.format_point(move)
-            movelist.append(move)
-            returnstring = returnstring + move + " "
-        movelist.sort()
-        probabilities = []
-        #for move in movelist:
-            #get prob
-            #prob.append(prob)
-            #returnstring = returnstring + prob + " "
-            # """
-        #pass
-        moveList = self.go_engine.getMoves(self.board, self.board.current_player)
-        moves = []
-        probs = []
-        for move in sorted(moveList):
-            moves.append(move)
-            probs.append(moveList[move])
-        returnstring = ""
-        for move in moves:
-            returnstring = returnstring + str(move) + " "
-
-        for prob in probs:
-            returnstring = returnstring + str(round(prob,3)) + " "
-
-        self.go_engine.policy_moves = returnstring
-        self.respond()
+        color = self.board.current_player
+        moveList = self.go_engine.getMoves(self.board, color)
+        sortedList = {format_point(point_to_coord(k, self.board.size)): v for k,v in sorted(moveList.items(), key=lambda item: format_point(point_to_coord(item[0], self.board.size)))}
+        returnKey = []
+        returnValue = []
+        for key in sortedList.keys():
+            returnKey.append(key)
+            returnValue.append(str(sortedList[key]))
+        self.respond('{} {}'.format(' '.join(returnKey), ' '.join(returnValue)))
 
 
     def genmove_cmd(self, args):

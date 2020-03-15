@@ -1,19 +1,21 @@
-def getLegalMoves(self, g):
+from board_util import BLACK, WHITE, BORDER, EMPTY, PASS
+import numpy as np
+def getLegalMoves(g, color):
     #<---Gets legal moves faster than builtin --->
     moves = g.get_empty_points()
-    cp = g.current_player
+    cp = color
     op = BLACK - WHITE - cp
     legalMoves = []
 
     for m in moves:
-        if self.checkMoveLegality(m, g, cp, op):
+        if checkMoveLegality(m, g, cp, op):
             legalMoves.append(m)
     return legalMoves
 
-def checkMoveLegality(self, m, s, cp, op):
+def checkMoveLegality( m, s, cp, op):
     #<---Checks if a move (m) is legal in gameState (s) --->
     NB = s.neighbors[m]
-    tNB = len(neighbors)
+    tNB = len(NB)
 
     opNB= 0
     cpNB = 0 
@@ -36,14 +38,14 @@ def checkMoveLegality(self, m, s, cp, op):
     
     if cpNB > 0 and opNB == 0:
         if eNB == 0:
-            return self.detectLibertyInBlock(m, s, cp)
+            return detectLibertyInBlock(m, s, cp)
         return True
     
     elif opNB > 0:
         vNB = eNB
         #<---Check if there is a valid ally block--->
         if aNB > 0:
-            if self.detectLibertyInBlock(m, s, cp):
+            if detectLibertyInBlock(m, s, cp):
                 #<---All ally blocks are connected, only need 1 search for all ally neighbors (aNB)--->
                 vNB += aNB
 
@@ -51,7 +53,7 @@ def checkMoveLegality(self, m, s, cp, op):
         s.board[m] = cp
         for n in NB:
             if s.board[n] == op:
-                if self.detectLibertyInBlock(n, s, op):
+                if detectLibertyInBlock(n, s, op):
                     vNB += 1
                 else:
                     s.board[m] = EMPTY
@@ -67,12 +69,12 @@ def checkMoveLegality(self, m, s, cp, op):
         return True
     return False
 
-def findConnectedNB(self, s, NBs: list, opponent: int ) -> list:
+def findConnectedNB( s, NBs: list, opponent: int ) -> list:
     #<---We can add this if we need a speed up--->
     pass
 
 
-def detectLibertyInBlock(self, m, s, p):
+def detectLibertyInBlock( m, s, p):
     #<---Detects if a block has a liberty--->
     #<---move (m), gameState (s), player (p)--->
     v = np.full(s.maxpoint, False, dtype=bool)
