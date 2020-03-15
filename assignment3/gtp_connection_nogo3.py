@@ -49,6 +49,14 @@ class GtpConnectionNoGo3(GtpConnection):
 
 
     def genmove_cmd(self, args):
-        pass
-        self.go_engine.genmove
-        self.respond()
+        color = self.board.current_player
+        moveList = self.go_engine.getMoves(self.board, color)
+        max = -1
+        move_return = None
+        for move in moveList:
+            prob = moveList[move]
+            if prob > max:
+                max = prob
+                move_return = move
+        move_return = format_point(point_to_coord(move_return, self.board.size))
+        self.respond(move_return)
