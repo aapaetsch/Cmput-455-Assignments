@@ -70,7 +70,7 @@ def writeMoves(board, moves, stats):
 
 def runUcb(player, board, C, moves, toplay):
     stats = [[0,0] for _ in moves]
-    num_simulation = len(moves) * player.sim
+    num_simulation = len(moves) * player.num_sim
     for n in range(num_simulation):
         moveIndex = findBest(stats, C, n)
         result = player.simulate(board, moves[moveIndex], toplay)

@@ -187,3 +187,6 @@ class PatternUtil(object):
                 break
         winner,_ = board.score(komi)
         return winner
+#def moveNumber(self):
+    #return len(self.moves)
+    

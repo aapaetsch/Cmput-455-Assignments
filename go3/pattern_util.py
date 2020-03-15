@@ -185,5 +185,6 @@ class PatternUtil(object):
                 nuPasses = 0
             if nuPasses >= 2:
                 break
+        print('limit:', limit, 'random:', random_simulation,'\nuse_pattern:', use_pattern, 'check_selfatari:', check_selfatari, 'nuPasses:', nuPasses)
         winner,_ = board.score(komi)
         return winner
