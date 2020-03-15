@@ -3,11 +3,13 @@
 # Set the path to your python3 above
 
 from gtp_connection_nogo3 import GtpConnectionNoGo3
-from board_util import GoBoardUtil
+from board_util import GoBoardUtil, BLACK, WHITE, EMPTY
 from simple_board import SimpleGoBoard
 from legalMoveGen import getLegalMoves
 import sys
 import ucb
+import numpy as np
+import random
 
 
 class Nogo():
@@ -32,12 +34,13 @@ class Nogo():
         while True:
 
             cp = tempState.current_player
-            legalMoves = getLegalMoves(tempState)
+            # legalMoves = getLegalMoves(tempState, cp)
+            legalMoves = self.generateLegalMoves(tempState, cp)
             if self.isTerminal(legalMoves):
-                return self.evaluation(cp)
+                return cp
 
-            np.random.shuffle(legalMoves)
-            move = legalMoves.pop()
+            
+            move = random.choice(legalMoves)
             self.quickPlayMove(tempState, move, cp)
 
     def patternSimulation(self, state, move, toplay):
@@ -72,8 +75,9 @@ class Nogo():
 
     def getMoves(self, state, color):
         self.originalPlayer = color
-        tempState = state.copy()
-        legalMoves = getLegalMoves(tempState)
+        gameState = state.copy()
+        # legalMoves = getLegalMoves(gameState, color)
+        legalMoves = self.generateLegalMoves(gameState, color)
         probs = {}
 
         if not legalMoves:
@@ -81,26 +85,39 @@ class Nogo():
 
         if self.selection == 'rr':
             #<---Do a round robin selection--->
+            print('White' if color == WHITE else 'black')
             for move in legalMoves:
-                wins = self.simulateMove()
-                probs[move] = wins
+                wins = self.simulateMove(gameState, move, color)
+                probs[move] = wins/self.num_sim
 
         else:
             #<---Do a UCB Selection--->
-            pass
+            C = 0.4
+            stats = [[0,0] for _ in legalMoves] 
+            num_simulation = len(legalMoves) * self.num_sim
+            for n in range(num_simulation):
+                moveIndex = ucb.findBest(stats, C, n)
+                result = self.simulate(gameState, legalMoves[moveIndex], color)
+                if result == toplay:
+                    stats[moveIndex][0] += 1
+                stats[moveIndex][1] += 1
+
+
 
         return probs
-
-    def evaluation(self, cp):
-        if self.originalPlayer != cp:
-            return True
-        return False
         
     def isTerminal(self, remainingMoves):
         if len(remainingMoves) == 0:
             return True
         return False
 
+    def generateLegalMoves(self, gameState, color):
+        ePts = gameState.get_empty_points()
+        moves = []
+        for pt in ePts:
+            if gameState.is_legal(pt, color):
+                moves.append(pt)
+        return moves
 
 
 # def byPercentage(pair):

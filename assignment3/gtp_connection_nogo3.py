@@ -37,8 +37,15 @@ class GtpConnectionNoGo3(GtpConnection):
         self.respond()
 
     def policy_moves_cmd(self, args):
-        pass
-
+        color = self.board.current_player
+        moveList = self.go_engine.getMoves(self.board, color)
+        sortedList = {format_point(point_to_coord(k, self.board.size)): v for k,v in sorted(moveList.items(), key=lambda item: format_point(point_to_coord(item[0], self.board.size)))}
+        returnKey = []
+        returnValue = []
+        for key in sortedList.keys():
+            returnKey.append(key)
+            returnValue.append(str(sortedList[key]))
+        self.respond('{} {}'.format(' '.join(returnKey), ' '.join(returnValue)))
 
     def genmove_cmd(self, args):
         pass
