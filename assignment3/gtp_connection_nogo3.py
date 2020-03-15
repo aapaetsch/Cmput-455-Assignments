@@ -1,6 +1,6 @@
 
 
-
+from legalMoveGen import getLegalMoves
 from gtp_connection import GtpConnection, point_to_coord, format_point
 from board_util import GoBoardUtil, BLACK, WHITE, EMPTY, BORDER, PASS, MAXSIZE, coord_to_point
 BLACK = 1
@@ -37,8 +37,40 @@ class GtpConnectionNoGo3(GtpConnection):
         self.respond()
 
     def policy_moves_cmd(self, args):
-        pass
+        "
+        moves = getLegalMoves()
+        movelist = []
+        returnstring = ""
+        for move in moves:
+            move = GtpConnection.format_point(move)
+            movelist.append(move)
+            returnstring = returnstring + move + " "
+        movelist.sort()
+        probabilities = []
+        #for move in movelist:
+            #get prob
+            #prob.append(prob)
+            #returnstring = returnstring + prob + " "
+            # """
+        #pass
+        moveList = self.go_engine.getMoves(self.board, self.board.current_player)
+        moves = []
+        probs = []
+        for move in sorted(moveList):
+            moves.append(move)
+            probs.append(moveList[move])
+        returnstring = ""
+        for move in moves:
+            returnstring = returnstring + str(move) + " "
+
+        for prob in probs:
+            returnstring = returnstring + str(round(prob,3)) + " "
+
+        self.go_engine.policy_moves = returnstring
+        self.respond()
 
 
     def genmove_cmd(self, args):
         pass
+        self.go_engine.genmove
+        self.respond()
