@@ -1,3 +1,4 @@
+#Public test v2
 #GTP random game: public_test1
 clear_board
 boardsize 7
@@ -58,7 +59,7 @@ policy random
 
 policy pattern
 20 policy_moves
-#? [d1 d6 f3 f7 0.361 0.208 0.11 0.321]
+#? [d1 d6 f3 f7 0.424 0.206 0.052 0.319]
 
 # Test to see genmove works with rr selection
 # It should not choose f3, which will result in a loss
@@ -127,7 +128,7 @@ policy random
 
 policy pattern
 50 policy_moves
-#? [c4 c7 d1 e2 e3 g3 g7 0.22 0.098 0.26 0.086 0.141 0.098 0.098]
+#? [c4 c7 d1 e2 e3 g3 g7 0.079 0.155 0.047 0.341 0.158 0.092 0.128]
 
 # test to see if UCB improves with more sampling
 play b g7
@@ -179,7 +180,7 @@ play w e4
 play b g7
 num_sim 100
 70 genmove w
-#? [e3]
+#? [e3|c4]
 
 #GTP random game: public_test3
 clear_board
@@ -232,7 +233,7 @@ policy random
 
 policy pattern
 90 policy_moves
-#? [a4 d2 d5 e3 f3 0.187 0.247 0.393 0.119 0.054]
+#? [a4 d2 d5 e3 f3 0.166 0.157 0.097 0.334 0.246]
 
 
 #GTP random game: public_test4
@@ -274,7 +275,7 @@ play W D1
 # ucb, random
 selection ucb
 110 genmove b
-#? [d2]
+#? [d2|c3]
 
 clear_board
 play B B4
@@ -289,7 +290,7 @@ play W D1
 # ucb, pattern
 policy pattern
 120 genmove b
-#? [a2]
+#? [a2|d2]
 
 clear_board
 play B B4
@@ -302,5 +303,7 @@ play B B1
 play W D1
 
 # rr, pattern
+selection rr
 130 genmove b
-#? [a2]
+# There is a small chance of a1 and c3 being chosen. Don't panic if you fail this test, we will take that into account and rerun your submission just in case. 
+#? [a2|d2]

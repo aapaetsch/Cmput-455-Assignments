@@ -39,24 +39,23 @@ class GtpConnectionNoGo3(GtpConnection):
     def policy_moves_cmd(self, args):
         color = self.board.current_player
         moveList = self.go_engine.getMoves(self.board, color)
-        sortedList = {format_point(point_to_coord(k, self.board.size)): v for k,v in sorted(moveList.items(), key=lambda item: format_point(point_to_coord(item[0], self.board.size)))}
-        returnKey = []
-        returnValue = []
-        for key in sortedList.keys():
-            returnKey.append(key)
-            returnValue.append(str(sortedList[key]))
+        sortedList = {self.strPoint(k): v for k,v in sorted(moveList.items(), key=lambda item: self.strPoint(item[0]))}
+        returnKey = [key for key in sortedList.keys()]
+        returnValue = [str(sortedList[key]) for key in sortedList.keys()]
         self.respond('{} {}'.format(' '.join(returnKey), ' '.join(returnValue)))
 
 
     def genmove_cmd(self, args):
-        color = self.board.current_player
-        moveList = self.go_engine.getMoves(self.board, color)
-        max = -1
-        move_return = None
-        for move in moveList:
-            prob = moveList[move]
-            if prob > max:
-                max = prob
-                move_return = move
-        move_return = format_point(point_to_coord(move_return, self.board.size))
+        assert args[0] == 'w' or args[0] == 'b'
+        color = WHITE if args[0] == 'w' else BLACK
+        moveDict = self.go_engine.getMoves(self.board, color)
+        move_return = self.strPoint(max(moveDict.items(), key=lambda item: item[1])[0])
         self.respond(move_return)
+
+
+    def strPoint(self, point):
+        return format_point(point_to_coord(point, self.board.size))
+
+
+
+     

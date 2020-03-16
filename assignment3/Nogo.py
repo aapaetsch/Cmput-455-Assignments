@@ -29,8 +29,8 @@ class Nogo():
     def randomSimulation(self, state, move, toplay):
         tempState = state.copy()
         #<---Play 1 game to the end from here--->
-        self.quickPlayMove(tempState, move, toplay)
- 
+        # self.quickPlayMove(tempState, move, toplay)
+        tempState.play_move(move, toplay)
         while True:
 
             cp = tempState.current_player
@@ -39,9 +39,10 @@ class Nogo():
             if self.isTerminal(legalMoves):
                 return cp
 
-            
-            move = random.choice(legalMoves)
-            self.quickPlayMove(tempState, move, cp)
+            random.shuffle(legalMoves)
+            move = legalMoves.pop()
+            # self.quickPlayMove(tempState, move, cp)
+            tempState.play_move(move, cp)
 
     def patternSimulation(self, state, move, toplay):
         pass
@@ -63,7 +64,6 @@ class Nogo():
             return self.patternSimulation(state, move, toplay)
 
 
-
     def simulateMove(self, board, move, toplay):
         #<---simulation for a given move--->
         wins = 0 
@@ -72,6 +72,8 @@ class Nogo():
             if result == toplay:
                 wins += 1
         return wins
+
+
 
     def getMoves(self, state, color):
         self.originalPlayer = color
@@ -88,7 +90,8 @@ class Nogo():
             print('White' if color == WHITE else 'black')
             for move in legalMoves:
                 wins = self.simulateMove(gameState, move, color)
-                probs[move] = wins/self.num_sim
+                probs[move] = round(wins/(len(legalMoves)*self.num_sim),3)
+
 
         else:
             #<---Do a UCB Selection--->
