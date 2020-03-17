@@ -11,7 +11,7 @@ The board uses a 1-dimensional representation with padding
 
 import numpy as np
 from board_util import GoBoardUtil, BLACK, WHITE, EMPTY, BORDER, \
-                       PASS, is_black_white, coord_to_point, where1d, \
+                       PASS, is_black_white, is_black_white_empty, coord_to_point, where1d, \
                        MAXSIZE, NULLPOINT
 
 class SimpleGoBoard(object):
@@ -75,6 +75,8 @@ class SimpleGoBoard(object):
         self.liberty_of = np.full(self.maxpoint, NULLPOINT, dtype = np.int32)
         self._initialize_empty_points(self.board)
         self._initialize_neighbors()
+        self.last_move = None
+        self.last2_move = None
 
     def copy(self):
         b = SimpleGoBoard(self.size)
@@ -184,10 +186,15 @@ class SimpleGoBoard(object):
         Returns a board of boolean markers which are set for
         all the points in the block 
         """
-        marker = np.full(self.maxpoint, False, dtype = bool)
-        pointstack = [stone]
+
         color = self.get_color(stone)
         assert is_black_white(color)
+
+
+        #<--connected_component--->
+        marker = np.full(self.maxpoint, False, dtype = bool)
+        pointstack = [stone]
+        assert is_black_white_empty(color)
         marker[stone] = True
         while pointstack:
             p = pointstack.pop()
@@ -265,6 +272,8 @@ class SimpleGoBoard(object):
         if in_enemy_eye and len(single_captures) == 1:
             self.ko_recapture = single_captures[0]
         self.current_player = GoBoardUtil.opponent(color)
+        self.last2_move = self.last2_move
+        self.last_move = point
         return True
 
     def neighbors_of_color(self, point, color):
@@ -292,6 +301,15 @@ class SimpleGoBoard(object):
                 point - self.NS + 1, 
                 point + self.NS - 1, 
                 point + self.NS + 1]
+
+    def last_moves_empty_neighbors(self):
+        nb_list = []
+        for c in self.last_move, self.last2_move:
+            if c is None: 
+                continue
+            nb_of_c_list = list(self._neighbors(c) + self._diag_neighbors(c))
+            nb_list += [d for d in nb_of_c_list if self.board[d] == EMPTY and d not in nb_list]
+        return nb_list
     
     def _point_to_coord(self, point):
         """

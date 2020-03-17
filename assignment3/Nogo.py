@@ -73,7 +73,6 @@ class Nogo():
     def simulateMove(self, state, move, toplay):
         #<---simulation for a given move--->
         wins = 0 
-
         for _ in range(self.num_sim):
             result = self.simulate(state, move, toplay)
             if result == toplay:
@@ -113,38 +112,28 @@ class Nogo():
                     stats[moveIndex][0] += 1
                 stats[moveIndex][1] += 1
 
-        self.weights = {}
-        if self.selection == 'rr':
-            if self.policy == 'random':
-                for key in probs.keys():
-                    probs[key] = round(self.num_sim / (self.num_sim * len(legalMoves)),3)
-            else:
-                probSum = 0 
-                for key in probs.keys():
-                    x = wins/len(legalMoves)*self.num_sim
-                    probs[key] = x
-                    probSum += x
-                for key in probs.keys():
-                    probs[key] = probs[key]/probSum
+
+
+        # print(probs)
+        # self.weights = {}
+        # if self.selection == 'rr':
+        #     if self.policy == 'random':
+        #         for key in probs.keys():
+        #             probs[key] = round(self.num_sim / (self.num_sim * len(legalMoves)),3)
+        #     else:
+        #         probSum = 0 
+        #         for key in probs.keys():
+        #             x = wins/len(legalMoves)*self.num_sim
+        #             probs[key] = x
+        #             probSum += x
+        #         for key in probs.keys():
+        #             probs[key] = probs[key]/probSum
 
         #<---NEED TO ADD THE THING.... probs for rr random forces even distro... need to send a valid dict to get a valid genmove rr random answer
+        self.weights = {}
         return probs
         
-    def isTerminal(self, remainingMoves):
-        if len(remainingMoves) == 0:
-            return True
-        return False
 
-    def evaluate(self, cp):
-        return BLACK + WHITE - cp
-
-    def generateLegalMoves(self, gameState, color):
-        ePts = gameState.get_empty_points()
-        moves = []
-        for pt in ePts:
-            if gameState.is_legal(pt, color):
-                moves.append(pt)
-        return moves
 
     def getWeight(self, state,  toplay, move):
         pattern = PatternUtil.neighborhood_33(state, move)
@@ -163,8 +152,10 @@ class Nogo():
 
             elif i == ' ':
                 addy += BORDER * pow(4, index)
-            index += 1 
-        return self.weights[addy]        
+            index += 1
+        
+        weight =  self.weights.get(addy)
+        return weight
 
     def patternSimulation(self, state, move, toplay):
         tempState = state.copy()
@@ -176,46 +167,61 @@ class Nogo():
             if self.isTerminal(legalMoves):
                 return self.evaluate(cp)
 
-            # #<---generate pattern moves--->
-            # pattern_checking_set = tempState.last_moves_empty_neighbors()
-            # moves = []
-            # for p in pattern_checking_set:
-            #     if (PatternUtil.neighborhood_33(tempState, p) in pat3set):
-            #         assert p not in moves
-            #         assert board.board[p] == EMPTY
-            #         moves.append(p)
-            # #<---Move by weight--->
-            #<---Probably doing this wrong...
-            weightedMax = 0 
-            weightedMove = None
-            for move in legalMoves:
-                # weightedMoves[move] = self.getWeight(tempState, cp, move) 
-                weight = self.getWeight(tempState, cp, move)
-                if weight >= weightedMax:
-                    weightedMax = weight
-                    weightedMove = move
+            #<---If we are not in a terminal state--->
+            moves = self.getPatternMoves(tempState, cp, legalMoves)
+            
+            #<---Then we chose a move from moves--->
+            '''
+            if x <= v1:...
+            elif x<= v1+...+vn for all moves
+            '''
+            playedMove = False
+            if len(moves) != 0:
+                prob = random.uniform(0,1)
+                vn = 0 
+                for possibleMove in moves.keys():
+                    vn += moves[possibleMove]
+                    if prob <= vn:
+                        tempState.play_move(possibleMove, cp)
+                        playedMove = True
+                        break
 
-            tempState.play_move(weightedMove, cp)
+            if not playedMove:
+                tempState.play_move(self.randomMoveGen(tempState, cp), cp)
+
+            
 
 
 
-# def byPercentage(pair):
-#     return pair[1]
+    def getPatternMoves(self, state, cp, legalMoves):
+        #<----generate a pattern move--->
+        moves = {}
+        weightSum = 0 
+        for move in legalMoves:
+            moveWeight = self.getWeight(state, cp, move)
+            if moveWeight != None and moveWeight != 1:
+                assert move not in moves.keys()
+                assert state.board[move] == EMPTY
+                moves[move] = moveWeight
+                weightSum += moveWeight
+        moves = {k:(v/weightSum) for k,v in moves.items()}
+        return moves
 
-# def writeMoves(board, moves, c, numSimulations):
-#     gtp_moves = []
-#     for i in range(len(moves)):
-#         if moves[i] != None:
-#             x, y = point_to_coord(moves[i], board.size)
-#             gtp_moves.append((format_point((x,y)), float(c[i])/float(numSimulations)))
-#         else:
-#             gtp_moves.append(('Pass',float(c[i])/float(numSimulations)))
-#     sys.stderr.write("win rates: {}\n".format(sorted(gtp_moves, key=byPercentage, reverse=True)))
-# sys.stderr.flush() #<---not sure why this is here??
+    def isTerminal(self, remainingMoves):
+        if len(remainingMoves) == 0:
+            return True
+        return False
 
-# def select_best_move(board, moves, moveWins):
-#     max_child = np.argmax(moveWins)
-#     return moves[max_child]
+    def evaluate(self, cp):
+        return BLACK + WHITE - cp
+
+    def generateLegalMoves(self, gameState, color):
+        ePts = gameState.get_empty_points()
+        moves = []
+        for pt in ePts:
+            if gameState.is_legal(pt, color):
+                moves.append(pt)
+        return moves
 
 def run():
     """

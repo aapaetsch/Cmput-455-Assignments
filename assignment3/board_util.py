@@ -16,6 +16,9 @@ BORDER = 3
 
 def is_black_white(color):
     return color == BLACK or color == WHITE
+
+def is_black_white_empty(color):
+    return color == BLACK or color == WHITE or color == EMPTY
 """
 Encoding of special pass move
 """
