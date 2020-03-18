@@ -13,13 +13,6 @@ import random
 from pattern_util import PatternUtil
 from pattern import pat3set
 
-def openFile(fileName):
-    weights = {}
-    with open(fileName, 'r') as f:
-        for line in f:
-            item = line.split(' ')
-            weights[int(item[0])] = float(item[1])
-    return weights
 
 class Nogo():
     def __init__(self):
@@ -90,7 +83,7 @@ class Nogo():
             return None
 
         if self.policy == 'pattern':
-            self.weights = openFile('weights')
+            self.weights = self.openFile('weights')
 
         if self.selection == 'rr':
             #<---Do a round robin selection--->
@@ -189,17 +182,13 @@ class Nogo():
             if not playedMove:
                 tempState.play_move(self.randomMoveGen(tempState, cp), cp)
 
-            
-
-
-
     def getPatternMoves(self, state, cp, legalMoves):
         #<----generate a pattern move--->
         moves = {}
         weightSum = 0 
         for move in legalMoves:
             moveWeight = self.getWeight(state, cp, move)
-            if moveWeight != None and moveWeight != 1:
+            if moveWeight != None:
                 assert move not in moves.keys()
                 assert state.board[move] == EMPTY
                 moves[move] = moveWeight
@@ -222,6 +211,15 @@ class Nogo():
             if gameState.is_legal(pt, color):
                 moves.append(pt)
         return moves
+
+    def openFile(self, fileName):
+        weights = {}
+        with open(fileName, 'r') as f:
+            for line in f:
+                item = line.split(' ')
+                weights[int(item[0])] = float(item[1])
+        return weights
+
 
 def run():
     """

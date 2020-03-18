@@ -36,16 +36,41 @@ class GtpConnectionNoGo3(GtpConnection):
         self.go_engine.policy = args[0]
         self.respond()
 
+    # def policy_moves_cmd(self, args):
+    #     color = self.board.current_player
+    #     moveList = self.go_engine.getMoves(self.board, color)
+    #     if moveList == None:
+    #         self.respond()
+    #     else:
+    #         sortedList = {self.strPoint(k): v for k,v in sorted(moveList.items(), key=lambda item: self.strPoint(item[0]))}
+    #         returnKey = [key for key in sortedList.keys()]
+    #         returnValue = [str(sortedList[key]) for key in sortedList.keys()]
+    #         self.respond('{} {}'.format(' '.join(returnKey), ' '.join(returnValue)))
     def policy_moves_cmd(self, args):
-        color = self.board.current_player
-        moveList = self.go_engine.getMoves(self.board, color)
-        if moveList == None:
-            self.respond()
+        cp = self.board.current_player
+        legalMoves = self.go_engine.generateLegalMoves(self.board, cp)
+        if self.go_engine.policy == 'random':
+            #<---Do the probability calculations for random--->
+            remainingMoves = len(legalMoves)
+            if remainingMoves == 0:
+                self.respond()
+            else:
+                prob = str(round(self.go_engine.num_sim / (self.go_engine.num_sim * remainingMoves), 3))
+
+                self.respond('{} {}'.format(' '.join(sorted([self.strPoint(move) for move in legalMoves])), ' '.join([prob for i in range(remainingMoves)])))
         else:
-            sortedList = {self.strPoint(k): v for k,v in sorted(moveList.items(), key=lambda item: self.strPoint(item[0]))}
-            returnKey = [key for key in sortedList.keys()]
-            returnValue = [str(sortedList[key]) for key in sortedList.keys()]
-            self.respond('{} {}'.format(' '.join(returnKey), ' '.join(returnValue)))
+            #<---Do the probability calculations for pattern--->
+            self.go_engine.weights = self.go_engine.openFile('weights')
+            prob = self.go_engine.getPatternMoves(self.board, cp, legalMoves)
+            self.go_engine.weights = {}
+            probs = [[self.strPoint(k), round(v,3)] for k,v in sorted(prob.items(), key = lambda item: self.strPoint(item[0]))] 
+            x = 0 
+            for i in probs:
+                x += i[1]
+            print(x)
+            self.respond('{} {}'.format(' '.join([pt for pt,v in probs]),' '.join([str(v) for pt,v in probs])))
+
+
 
 
     def genmove_cmd(self, args):
