@@ -4,6 +4,7 @@
 
 from gtp_connection_nogo3 import GtpConnectionNoGo3
 from board_util import GoBoardUtil, BLACK, WHITE, EMPTY, BORDER
+from gtp_connection import point_to_coord, format_point
 from simple_board import SimpleGoBoard
 from legalMoveGen import getLegalMoves
 import sys
@@ -11,7 +12,7 @@ import ucb
 import numpy as np
 import random
 from pattern_util import PatternUtil
-from pattern import pat3set
+
 
 
 class Nogo():
@@ -27,6 +28,7 @@ class Nogo():
         self.policy = "random" # random or pattern
         self.selection = "rr" # rr or ucb
         self.num_sim = 10 # 10 is default
+        self.weights = self.openFile('weights')
 
     def randomSimulation(self, state, move, toplay):
         tempState = state.copy()
@@ -73,26 +75,23 @@ class Nogo():
         return wins
 
     def getMoves(self, state, color):
-        self.originalPlayer = color
         gameState = state.copy()
-        # legalMoves = getLegalMoves(gameState, color)
         legalMoves = self.generateLegalMoves(gameState, color)
         probs = {}
 
         if not legalMoves:
             return None
 
-        if self.policy == 'pattern':
-            self.weights = self.openFile('weights')
-
         if self.selection == 'rr':
             #<---Do a round robin selection--->
             print('White' if color == WHITE else 'black')
             for move in legalMoves:
                 wins = self.simulateMove(gameState, move, color)
-                # probs[move] = round(wins/(len(legalMoves)*self.num_sim),3)
-                probs[move] = wins
-
+                probs[move] = round(wins/(len(legalMoves)*self.num_sim),3)
+            
+            
+            best = max(probs.items(), key=lambda item: item[1])[0]
+             
         else:
             #<---Do a UCB Selection--->
             C = 0.4
@@ -101,54 +100,31 @@ class Nogo():
             for n in range(num_simulation):
                 moveIndex = ucb.findBest(stats, C, n)
                 result = self.simulate(gameState, legalMoves[moveIndex], color)
-                if result == toplay:
+                if result == color:
                     stats[moveIndex][0] += 1
                 stats[moveIndex][1] += 1
+            best = legalMoves[ucb.bestArm(stats)]
+            ucb.writeMoves(state, legalMoves, stats)
+            probs = legalMoves
 
 
-
-        # print(probs)
-        # self.weights = {}
-        # if self.selection == 'rr':
-        #     if self.policy == 'random':
-        #         for key in probs.keys():
-        #             probs[key] = round(self.num_sim / (self.num_sim * len(legalMoves)),3)
-        #     else:
-        #         probSum = 0 
-        #         for key in probs.keys():
-        #             x = wins/len(legalMoves)*self.num_sim
-        #             probs[key] = x
-        #             probSum += x
-        #         for key in probs.keys():
-        #             probs[key] = probs[key]/probSum
-
-        #<---NEED TO ADD THE THING.... probs for rr random forces even distro... need to send a valid dict to get a valid genmove rr random answer
-        self.weights = {}
-        return probs
+        return best, probs
         
 
 
-    def getWeight(self, state,  toplay, move):
-        pattern = PatternUtil.neighborhood_33(state, move)
-        pattern = pattern[:4] + pattern[5:]#Get rid of point p 
+    def getWeight(self, state,  toplay, m):
+        pattern = [m+state.NS-1, m+state.NS, m+state.NS+1,
+                   m-1,                      m+1,
+                   m-state.NS-1, m-state.NS, m-state.NS+1]
         addy = 0 
-        index = 0 
-        for i in pattern:
-            if i == 'X':
-                addy += toplay * pow(4, index)
-            
-            elif i == 'x':
-                addy += (BLACK + WHITE - toplay) * pow(4, index)
-                
-            elif i == '.':
-                addy += EMPTY * pow(4, index)
+        for i in range(len(pattern)):
+            p = state.board[pattern[i]]
+            if toplay == BLACK:
+                addy += p *(4**i)
+            else:
+                addy += ((BLACK + WHITE - p)*(4**i)) if p == BLACK or p == WHITE else (p*(4**i))
+        return self.weights.get(addy)
 
-            elif i == ' ':
-                addy += BORDER * pow(4, index)
-            index += 1
-        
-        weight =  self.weights.get(addy)
-        return weight
 
     def patternSimulation(self, state, move, toplay):
         tempState = state.copy()

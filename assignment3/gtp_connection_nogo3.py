@@ -36,16 +36,6 @@ class GtpConnectionNoGo3(GtpConnection):
         self.go_engine.policy = args[0]
         self.respond()
 
-    # def policy_moves_cmd(self, args):
-    #     color = self.board.current_player
-    #     moveList = self.go_engine.getMoves(self.board, color)
-    #     if moveList == None:
-    #         self.respond()
-    #     else:
-    #         sortedList = {self.strPoint(k): v for k,v in sorted(moveList.items(), key=lambda item: self.strPoint(item[0]))}
-    #         returnKey = [key for key in sortedList.keys()]
-    #         returnValue = [str(sortedList[key]) for key in sortedList.keys()]
-    #         self.respond('{} {}'.format(' '.join(returnKey), ' '.join(returnValue)))
     def policy_moves_cmd(self, args):
         cp = self.board.current_player
         legalMoves = self.go_engine.generateLegalMoves(self.board, cp)
@@ -60,14 +50,8 @@ class GtpConnectionNoGo3(GtpConnection):
                 self.respond('{} {}'.format(' '.join(sorted([self.strPoint(move) for move in legalMoves])), ' '.join([prob for i in range(remainingMoves)])))
         else:
             #<---Do the probability calculations for pattern--->
-            self.go_engine.weights = self.go_engine.openFile('weights')
             prob = self.go_engine.getPatternMoves(self.board, cp, legalMoves)
-            self.go_engine.weights = {}
             probs = [[self.strPoint(k), round(v,3)] for k,v in sorted(prob.items(), key = lambda item: self.strPoint(item[0]))] 
-            x = 0 
-            for i in probs:
-                x += i[1]
-            print(x)
             self.respond('{} {}'.format(' '.join([pt for pt,v in probs]),' '.join([str(v) for pt,v in probs])))
 
 
@@ -76,12 +60,10 @@ class GtpConnectionNoGo3(GtpConnection):
     def genmove_cmd(self, args):
         assert args[0] == 'w' or args[0] == 'b'
         color = WHITE if args[0] == 'w' else BLACK
-        moveDict = self.go_engine.getMoves(self.board, color)
-        if moveDict == None:
-            self.respond()
-        else:
-            move_return = self.strPoint(max(moveDict.items(), key=lambda item: item[1])[0])
-            self.respond(move_return)
+        bestMove, probs = self.go_engine.getMoves(self.board, color)
+        if self.go_engine.selection == 'rr':
+            print({self.strPoint(k):v for k,v in probs.items()})
+        self.respond(self.strPoint(bestMove))
 
 
     def strPoint(self, point):
