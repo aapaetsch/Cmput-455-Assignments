@@ -51,7 +51,7 @@ class GtpConnectionNoGo3(GtpConnection):
             #<---Do the probability calculations for pattern--->
             prob = self.go_engine.getPatternMoves(self.board, cp, legalMoves)
             probs = [[self.strPoint(k), round(v,3)] for k,v in sorted(prob.items(), key = lambda item: self.strPoint(item[0]))] 
-            self.respond('{} {}'.format(' '.join([pt for pt,v in probs]),' '.join([str(v) for pt,v in probs])))
+            self.respond('{} {}'.format(' '.join([pt for pt,v in probs]).lower(),' '.join([str(v) for pt,v in probs])))
 
 
 
@@ -63,7 +63,7 @@ class GtpConnectionNoGo3(GtpConnection):
         if bestMove == None:
             self.respond()
         else:
-            self.respond(self.strPoint(bestMove))
+            self.respond(self.strPoint(bestMove).lower())
 
 
     def strPoint(self, point):
