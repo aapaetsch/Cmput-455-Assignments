@@ -1,0 +1,25 @@
+Script started on Wed 18 Mar 2020 07:00:30 PM MDT
+paetsch@ohaton:~/Documents/Cmput-455-Assignments>mkdir test
+paetsch@ohaton:~/Documents/Cmput-455-Assignments>cp t[Kassignment3.tgs[Kz test/assignment3.tgz
+paetsch@ohaton:~/Documents/Cmput-455-Assignments>cd test
+paetsch@ohaton:~/Documents/Cmput-455-Assignments/test>tar -xzvf assignment3.tgz 
+assignment3/
+assignment3/gtp_connection_nogo3.py
+assignment3/legalMoveGen.py
+assignment3/readme.txt
+assignment3/Nogo.py
+assignment3/simple_board.py
+assignment3/ucb.py
+assignment3/board_util.py
+assignment3/gtp_connection.py
+assignment3/weights
+assignment3/pattern_util.py
+assignment3/pattern.py
+assignment3/assignment3-public-tests.gtp
+paetsch@ohaton:~/Documents/Cmput-455-Assignments/test>cd assignment3
+paetsch@ohaton:~/Documents/Cmput-455-Assignments/test/assignment3>gogui-regress Nogo.py assignnment3-public-tests.gtp 
+110 unexpected FAIL: Correct 'd2|c3', got 'a2'
+paetsch@ohaton:~/Documents/Cmput-455-Assignments/test/assignment3>exit
+exit
+
+Script done on Wed 18 Mar 2020 07:01:49 PM MDT
