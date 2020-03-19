@@ -46,7 +46,6 @@ class GtpConnectionNoGo3(GtpConnection):
                 self.respond()
             else:
                 prob = str(round(self.go_engine.num_sim / (self.go_engine.num_sim * remainingMoves), 3))
-
                 self.respond('{} {}'.format(' '.join(sorted([self.strPoint(move) for move in legalMoves])), ' '.join([prob for i in range(remainingMoves)])))
         else:
             #<---Do the probability calculations for pattern--->
@@ -60,10 +59,11 @@ class GtpConnectionNoGo3(GtpConnection):
     def genmove_cmd(self, args):
         assert args[0] == 'w' or args[0] == 'b'
         color = WHITE if args[0] == 'w' else BLACK
-        bestMove, probs = self.go_engine.getMoves(self.board, color)
-        if self.go_engine.selection == 'rr':
-            print({self.strPoint(k):v for k,v in probs.items()})
-        self.respond(self.strPoint(bestMove))
+        bestMove = self.go_engine.getMoves(self.board, color)
+        if bestMove == None:
+            self.respond()
+        else:
+            self.respond(self.strPoint(bestMove))
 
 
     def strPoint(self, point):
