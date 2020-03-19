@@ -305,5 +305,5 @@ play W D1
 # rr, pattern
 selection rr
 130 genmove b
-# There is a small chance of a1 and c3 being chosen. Don't panic if you fail this test, we will take that into account and rerun your submission just in case. 
 #? [a2|d2]
+# There is a small chance of a1 and c3 being chosen. Don't panic if you fail this test, we will take that into account and rerun your submission just in case. 
