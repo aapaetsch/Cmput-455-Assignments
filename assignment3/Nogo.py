@@ -84,7 +84,6 @@ class Nogo():
 
         if self.selection == 'rr':
             #<---Do a round robin selection--->
-            print('White' if color == WHITE else 'black')
             for move in legalMoves:
                 wins = self.simulateMove(gameState, move, color)
                 probs[move] = round(wins/(len(legalMoves)*self.num_sim),3)
@@ -102,7 +101,6 @@ class Nogo():
                     stats[moveIndex][0] += 1
                 stats[moveIndex][1] += 1
             best = legalMoves[ucb.bestArm(stats)]
-            ucb.writeMoves(state, legalMoves, stats)
 
         return best
         

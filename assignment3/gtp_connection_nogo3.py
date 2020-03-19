@@ -46,12 +46,12 @@ class GtpConnectionNoGo3(GtpConnection):
                 self.respond()
             else:
                 prob = str(round(self.go_engine.num_sim / (self.go_engine.num_sim * remainingMoves), 3))
-                self.respond('{} {}'.format(' '.join(sorted([self.strPoint(move) for move in legalMoves])), ' '.join([prob for i in range(remainingMoves)])))
+                self.respond('{} {}'.format(' '.join(sorted([self.strPoint(move).lower() for move in legalMoves])), ' '.join([prob for i in range(remainingMoves)])))
         else:
             #<---Do the probability calculations for pattern--->
             prob = self.go_engine.getPatternMoves(self.board, cp, legalMoves)
-            probs = [[self.strPoint(k), round(v,3)] for k,v in sorted(prob.items(), key = lambda item: self.strPoint(item[0]))] 
-            self.respond('{} {}'.format(' '.join([pt for pt,v in probs]).lower(),' '.join([str(v) for pt,v in probs])))
+            probs = [[self.strPoint(k).lower(), round(v,3)] for k,v in sorted(prob.items(), key = lambda item: self.strPoint(item[0]))] 
+            self.respond('{} {}'.format(' '.join([pt for pt,v in probs]),' '.join([str(v) for pt,v in probs])))
 
 
 
