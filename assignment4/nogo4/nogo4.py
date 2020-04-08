@@ -73,6 +73,7 @@ class Nogo():
                     stats[moveIndex][0] += 1
                 stats[moveIndex][1] += 1
             best = legalMoves[ucb.bestArm(stats)]
+            print('best:', best)
             self.best_move = best
         return best
 
