@@ -31,7 +31,7 @@ class Nogo():
         self.name = "NoGo Assignment 4"
         self.version = 1.0
         self.num_sim = 10
-        self.weights = self.openFile('weights')
+        self.weights = self.openFile('nogo4/weights')
         self.UCB_ON = True
         
     def quickPlayMove(self, state, move, player):
