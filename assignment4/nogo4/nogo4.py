@@ -42,7 +42,17 @@ class Nogo():
         state.board[move] = EMPTY
         cp = state.current_player
         state.current_player = WHITE + BLACK - cp
+
     def get_move(self, board, color):
+        bestMove = self.getMoves(board, color)
+
+        if bestMove == None:
+            legalMoves = self.generateLegalMoves(board, color)
+            if len(legalMoves) != 0:
+                return self.randomMoveGen(board, color)
+            return None
+        return bestMove
+
 
     def getMoves(self, state, color):
         gameState = state.copy()
