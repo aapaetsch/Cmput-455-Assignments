@@ -5,7 +5,7 @@ import sys
 import ucb
 import numpy as np
 import random 
-from pattern_util 
+
 
 def undo(board, move):
     board.board[move] = EMPTY
