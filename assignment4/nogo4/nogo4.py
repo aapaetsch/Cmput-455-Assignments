@@ -168,7 +168,7 @@ def run():
     start the gtp connection and wait for commands.
     """
     board = SimpleGoBoard(7)
-    con = GtpConnection(NoGoFlatMC(), board)
+    con = GtpConnection(Nogo(), board)
     con.start_connection()
 
 if __name__=='__main__':
