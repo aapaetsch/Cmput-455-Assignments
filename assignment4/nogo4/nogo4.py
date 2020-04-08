@@ -90,12 +90,12 @@ class Nogo():
             if len(moves) != 0:
                 prob = random.uniform(0,1)
                 vn = 0 
-                for possibleMove in moves.keys()
-                vn += moves[possibleMove]
-                if prob <= vn:
-                    tempState.play_move(possibleMove, cp)
-                    playedMove = True
-                    break
+                for possibleMove in moves.keys():
+                    vn += moves[possibleMove]
+                    if prob <= vn:
+                        tempState.play_move(possibleMove, cp)
+                        playedMove = True
+                        break
 
             if not playedMove:
                 tempState.play_move(self.randomMoveGen(tempState, cp), cp)
