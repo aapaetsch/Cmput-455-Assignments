@@ -71,7 +71,7 @@ class Nogo():
 
     def randomMoveGen(self, state, player):
         moves = state.get_empty_points()
-        np.random.shuffle(moves):
+        np.random.shuffle(moves)
         for move in moves:
             if state.is_lkegal(move, player):
                 return move
