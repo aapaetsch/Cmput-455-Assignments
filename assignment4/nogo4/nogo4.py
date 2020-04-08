@@ -30,10 +30,10 @@ class Nogo():
         """
         self.name = "NoGo Assignment 4"
         self.version = 1.0
-        self.num_sim = 10
         self.weights = self.openFile('nogo4/weights')
         self.UCB_ON = True
         self.best_move = None
+
     def quickPlayMove(self, state, move, player):
         state.board[move] = player
         state.current_player = WHITE + BLACK - player
@@ -73,7 +73,8 @@ class Nogo():
                     stats[moveIndex][0] += 1
                 stats[moveIndex][1] += 1
             best = legalMoves[ucb.bestArm(stats)]
-            print('best:', best)
+            print(stats)
+            
             self.best_move = best
         return best
 
