@@ -5,6 +5,7 @@ import sys
 import ucb
 import numpy as np
 import random 
+from math import log, sqrt
 
 
 def undo(board, move):
@@ -73,7 +74,7 @@ class Nogo():
         moves = state.get_empty_points()
         np.random.shuffle(moves)
         for move in moves:
-            if state.is_lkegal(move, player):
+            if state.is_legal(move, player):
                 return move
         return None
 
@@ -108,6 +109,8 @@ class Nogo():
         tempState = original_board.copy()
         legalMoves = self.generateLegalMoves(tempState, color)
         
+        bestScore = -float('inf')
+
         if len(legalMoves) == 0:
             return None
         
@@ -119,11 +122,17 @@ class Nogo():
                 print(n)
                 moveIndex = ucb.findBest(stats, C, n)
                 result = self.simulate(tempState, legalMoves[moveIndex], color)
+
+                stats[moveIndex][1] += 1
                 if result == color:
                     stats[moveIndex][0] += 1
-                stats[moveIndex][1] += 1
+
+                    print(stats)
+                    input()
+
+                
+
             best = legalMoves[ucb.bestArm(stats)]
-            self.best_move = best
         return best
 
     def simulate(self, gameState, move, toplay):
