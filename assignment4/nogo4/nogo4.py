@@ -129,7 +129,8 @@ class Nogo():
                 stats[moveIndex][1] += 1
                 if result == color:
                     stats[moveIndex][0] += 1
-                score = ucb.ucb(stats, C, moveIndex, n)
+
+                score = (stats[i][0]/stats[i][1]) + C * sqrt(log(n) / stats[i][1])
                 print(score)
                 if score > bestScore:
                     bestScore = score
@@ -142,11 +143,9 @@ class Nogo():
         return best
 
     def simulate(self, gameState, move, toplay):
-        print('sim')
         tempState = gameState.copy()
         tempState.play_move(move, toplay)
         
-        print('while')
         while True:
 
             cp = tempState.current_player
