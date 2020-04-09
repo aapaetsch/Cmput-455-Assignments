@@ -117,7 +117,7 @@ class MCTS(object):
         node.update_recursive(leaf_value)
 
     def _evaluate_rollout(self, board, toplay):
-
+        print('rollout')
         winner = self.simulate(board, toplay)
         print('dinner',winner)
         if winner == BLACK:
