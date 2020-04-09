@@ -93,6 +93,7 @@ class MCTS(object):
 
     def _evaluate_rollout(self, board, toplay):
         winner = self.simulate(board, toplay)
+        print(winner)
         if winner == BLACK:
             return 1
         else:
