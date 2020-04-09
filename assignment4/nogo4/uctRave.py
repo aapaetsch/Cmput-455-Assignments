@@ -93,13 +93,13 @@ class MCTS(object):
         if not node._expanded:
             print('\texpand')
             node.expand(board, color)
-
+        print('before while')
         while not node.is_leaf():
             print('\twhile not leaf')
             # Greedily select next move.                
             max_flag = color == BLACK
             move, next_node = node.select(self.exploration,max_flag)
-            print('selected')
+            print('\tselected')
             if move!=PASS:
                 assert board.is_legal(move, color)
             if move == PASS:
@@ -107,6 +107,7 @@ class MCTS(object):
             board.play_move(move, color)
             color = BLACK + WHITE - color
             node = next_node
+        print(node)
         assert node.is_leaf()
         if not node._expanded:
             node.expand(board, color)
@@ -117,6 +118,7 @@ class MCTS(object):
         node.update_recursive(leaf_value)
 
     def _evaluate_rollout(self, board, toplay):
+
         winner = self.simulate(board, toplay)
         print(winner)
         if winner == BLACK:
