@@ -129,13 +129,20 @@ class Nogo():
                 stats[moveIndex][1] += 1
                 if result == color:
                     stats[moveIndex][0] += 1
-                    
-                print(stats)
-                score = (stats[moveIndex][0]/stats[moveIndex][1]) + C * sqrt(log(n) / stats[moveIndex][1])
-                print(score)
-                if score > bestScore:
-                    bestScore = score
-                    self.best_move = legalMoves[moveIndex]
+
+
+
+
+
+                if n > 1:
+                    score = (stats[moveIndex][0]/stats[moveIndex][1]) + C * sqrt(log(n) / stats[moveIndex][1])
+                    print(score)
+                    if score > bestScore:
+                        bestScore = score
+                        self.best_move = legalMoves[moveIndex]
+                
+
+                
 
 
             best = legalMoves[ucb.bestArm(stats)]
