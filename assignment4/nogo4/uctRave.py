@@ -101,14 +101,12 @@ class MCTS(object):
             max_flag = color == BLACK
             move, next_node = node.select(self.exploration,max_flag)
             print('\tselected')
-            if move!=PASS:
-                assert board.is_legal(move, color)
-            if move == PASS:
-                move = None
+            
             board.play_move(move, color)
             color = BLACK + WHITE - color
             node = next_node
-        print(node)
+            print('end of loop')
+        print(node.is_leaf())
         assert node.is_leaf()
         if not node._expanded:
             node.expand(board, color)
