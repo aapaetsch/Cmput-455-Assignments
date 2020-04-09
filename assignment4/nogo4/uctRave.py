@@ -18,56 +18,56 @@ def uct_val(node, child, exploration, max_flag):
 
 
 class Nogo():
-	def __init__(self):
-		self.name = "NoGo Assignment 4"
-		self.version = 1.0
-		self.weights = self.openFile('nogo4/weights')
-		self.best_move = None
-		self.parent = None
-		self.num_sim = 10
-		self.MCTS = MCTS(self.weights)
+    def __init__(self):
+        self.name = "NoGo Assignment 4"
+        self.version = 1.0
+        self.weights = self.openFile('nogo4/weights')
+        self.best_move = None
+        self.parent = None
+        self.num_sim = 10
+        self.MCTS = MCTS(self.weights)
 
-	def reset(self):
-		self.MCTS = MCTS(self.weights)
+    def reset(self):
+        self.MCTS = MCTS(self.weights)
 
-	def update(self, move):
-		self.parent = self.MCTS._root
-		self.MCTS.update_with_move(move)
+    def update(self, move):
+        self.parent = self.MCTS._root
+        self.MCTS.update_with_move(move)
 
-	def openFile(self, fileName):
-		weights = {}
+    def openFile(self, fileName):
+        weights = {}
         with open(fileName, 'r') as f:
             for line in f:
                 item = line.split(" ")
                 weights[int(item[0])] = float(item[1])
         return weights
-	
+    
 
     def get_move(self, board, toplay):
-    	legalMoves = self.generateLegalMoves(board, toplay)
-    	num_simulation = len(legalMoves)* self.num_sim
-    	move = self.MCTS.get_move(board, toplay, num_simulation)
-    	self.update(move)
-    	return move
+        legalMoves = self.generateLegalMoves(board, toplay)
+        num_simulation = len(legalMoves)* self.num_sim
+        move = self.MCTS.get_move(board, toplay, num_simulation)
+        self.update(move)
+        return move
 
 
 #exploration = 0.4
 
 
 class MCTS(object):
-	
-	def __init__(self, weights):
-		self._root  = TreeNode(None)
-		self.toplay = BLACK
-		self.exploration = 0.4
-		self.weights = weights
+    
+    def __init__(self, weights):
+        self._root  = TreeNode(None)
+        self.toplay = BLACK
+        self.exploration = 0.4
+        self.weights = weights
 
 
 
 
-	def _playout(self, board, color):
-		
-		node = self._root 
+    def _playout(self, board, color):
+        
+        node = self._root 
         # This will be True olny once for the root
         if not node._expanded:
             node.expand(board, color)
@@ -92,26 +92,26 @@ class MCTS(object):
         node.update_recursive(leaf_value)
 
     def _evaluate_rollout(self, board, toplay):
-    	winner = self.simulate(board, toplay)
-    	if winner == BLACK:
-    		return 1
-    	else:
-    		return 0
+        winner = self.simulate(board, toplay)
+        if winner == BLACK:
+            return 1
+        else:
+            return 0
 
     def simulate(self, board, toplay):
-    	tempState = gameState.copy()
+        tempState = gameState.copy()
 
-    	while True:
-    		cp = tempState.current_player
-    		legalMoves = self.generateLegalMoves(tempState, cp)
-    		if self.isTerminal(legalMoves):
-    			return self.evaluate(cp)
-    		moves = self.getPatternMoves(tempState, cp, legalMoves)
-    		playedMove = False
-    		if len(moves) != 0:
-    			prob = random.uniform(0,1)
-    			vn = 0
-    			for possibleMove in moves.keys():
+        while True:
+            cp = tempState.current_player
+            legalMoves = self.generateLegalMoves(tempState, cp)
+            if self.isTerminal(legalMoves):
+                return self.evaluate(cp)
+            moves = self.getPatternMoves(tempState, cp, legalMoves)
+            playedMove = False
+            if len(moves) != 0:
+                prob = random.uniform(0,1)
+                vn = 0
+                for possibleMove in moves.keys():
                     vn += moves[possibleMove]
                     if prob <= vn:
                         tempState.play_move(possibleMove, cp)
@@ -173,21 +173,21 @@ class MCTS(object):
 
     def get_move(self, board, toplay, num_simulation):
 
-    	if self.toplay != toplay:
-    		self._root = TreeNode(None)
+        if self.toplay != toplay:
+            self._root = TreeNode(None)
 
-    	for n in range(num_simulation):
-    		self._playout(board.copy(), toplay)
-    	moves_ls = [(move, node._n_visits) for move, node in self._root._children.items()]
-    	if not moves_ls:
-    		return None
-    	move = sorted(moves_ls, key=lambda i:i[1], reverse=True)[0]
-    	if move[0] == PASS:
-    		return None
-    	assert board.is_legal(move[0], toplay)
-    	return move[0]
+        for n in range(num_simulation):
+            self._playout(board.copy(), toplay)
+        moves_ls = [(move, node._n_visits) for move, node in self._root._children.items()]
+        if not moves_ls:
+            return None
+        move = sorted(moves_ls, key=lambda i:i[1], reverse=True)[0]
+        if move[0] == PASS:
+            return None
+        assert board.is_legal(move[0], toplay)
+        return move[0]
 
-	def update_with_move(self, last_move):
+    def update_with_move(self, last_move):
         """
         Step forward in the tree, keeping everything we already know about the subtree, assuming
         that get_move() has been called already. Siblings of the new root will be garbage-collected.
