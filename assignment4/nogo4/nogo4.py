@@ -129,14 +129,6 @@ class Nogo():
 
                 self.best_move = [legalMoves,stats] 
 
-
-
-                
-                
-
-                
-
-
             best = legalMoves[ucb.bestArm(stats)]
         
 

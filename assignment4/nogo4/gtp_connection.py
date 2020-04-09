@@ -13,7 +13,6 @@ from board_util import GoBoardUtil, BLACK, WHITE, EMPTY, BORDER, \
 import numpy as np
 import re
 import signal
-import ucb
 
 class GtpConnection():
 
@@ -279,7 +278,13 @@ class GtpConnection():
             self.board=self.sboard
             signal.alarm(0)
         except Exception as e:
-            move=self.go_engine.best_move[0][ucb.bestArm(self.go_engine.best_move[1])]
+            best = -1
+            bestScore = -float('inf')
+            for i in range(len(self.go_engine.best_move[1])):
+                if self.go_engine.best_move[1][i][1] > bestScore:
+                    bestScore = self.go_engine.best_move[1][i][1]
+                    best = i 
+            move = best
 
 
 
