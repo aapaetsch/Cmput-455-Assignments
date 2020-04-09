@@ -246,7 +246,7 @@ class TreeNode(object):
             print(move)
             if move not in self._children:
                 print('yes')
-                if board.is_legal(move, color) and not board.is_eye(move, color):
+                if board.is_legal(move, color):
                     print('250')
                     self._children[move] = TreeNode(self)
                     print('252')
