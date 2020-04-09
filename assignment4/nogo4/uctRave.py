@@ -47,6 +47,7 @@ class Nogo():
         legalMoves = self.generateLegalMoves(board, toplay)
         num_simulation = len(legalMoves)* self.num_sim
         move = self.MCTS.get_move(board, toplay, num_simulation)
+        print(move)
         self.update(move)
         return move
 
