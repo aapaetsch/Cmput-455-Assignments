@@ -123,6 +123,7 @@ class Nogo():
                 moveIndex = ucb.findBest(stats, C, n)
                 result = self.simulate(tempState, legalMoves[moveIndex], color)
 
+
                 stats[moveIndex][1] += 1
                 if result == color:
                     stats[moveIndex][0] += 1
@@ -144,13 +145,12 @@ class Nogo():
         tempState = gameState.copy()
         tempState.play_move(move, toplay)
 
-        legalMoves = self.generateLegalMoves(tempState, cp)
-        if self.isTerminal(legalMoves):
-            return 'chickenDinner'
+        
 
         while True:
 
             cp = tempState.current_player
+            legalMoves = self.generateLegalMoves(tempState, cp)
             if self.isTerminal(legalMoves):
                 return self.evaluate(cp)
             moves = self.getPatternMoves(tempState, cp, legalMoves)
@@ -167,7 +167,7 @@ class Nogo():
             if not playedMove:
                 tempState.playMove(self.randomMoveGen(tempState, cp), cp)
 
-            legalMoves = self.generateLegalMoves(tempState, cp)
+            
 
 
     def uct_rave(self, gameState, move, toplay):
