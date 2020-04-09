@@ -74,6 +74,7 @@ class MCTS(object):
         if self.toplay != toplay:
             self._root = TreeNode(None)
         for n in range(num_simulation):
+            print('playout')
             self._playout(board.copy(), toplay)
         moves_ls = [(move, node._n_visits) for move, node in self._root._children.items()]
 
@@ -90,13 +91,15 @@ class MCTS(object):
         node = self._root 
         # This will be True olny once for the root
         if not node._expanded:
+            print('\texpand')
             node.expand(board, color)
 
         while not node.is_leaf():
-
+            print('\twhile not leaf')
             # Greedily select next move.                
             max_flag = color == BLACK
             move, next_node = node.select(self.exploration,max_flag)
+            print('selected')
             if move!=PASS:
                 assert board.is_legal(move, color)
             if move == PASS:
