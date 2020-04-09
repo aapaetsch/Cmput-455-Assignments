@@ -111,9 +111,9 @@ class Nogo():
         legalMoves = self.generateLegalMoves(tempState, color)
         
         lenLegal = len(legalMoves)
-        if lenLegal > 35:
+        if lenLegal > 30:
             self.num_sim = 8
-        elif 35 >= lenLegal > 20:
+        elif 30 >= lenLegal > 20:
             self.num_sim = 10
         elif 20 >= lenLegal > 15:
             self.num_sim = 16
