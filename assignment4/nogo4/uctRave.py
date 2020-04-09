@@ -7,8 +7,7 @@ import numpy as np
 import random 
 from math import log, sqrt
 PASS = 'pass'
-import ptb
-ptb.enable()
+
 
 def uct_val(node, child, exploration, max_flag): 
     if child._n_visits == 0:
@@ -244,12 +243,19 @@ class TreeNode(object):
         """
         moves = board.get_empty_points()
         for move in moves:
+            print(move)
             if move not in self._children:
+                print('yes')
                 if board.is_legal(move, color) and not board.is_eye(move, color):
+                    print('250')
                     self._children[move] = TreeNode(self)
+                    print('252')
                     self._children[move]._move = move
+                    print('254')
         self._children[PASS] = TreeNode(self)
+        print('256')
         self._children[PASS]._move = PASS
+        print('258')
         self._expanded = True
 
 
