@@ -241,6 +241,7 @@ class TreeNode(object):
         Expands tree by creating new children.
         """
         moves = board.get_empty_points()
+        print(moves)
         for move in moves:
             if move not in self._children:
                 if board.is_legal(move, color) and not board.is_eye(move, color):
