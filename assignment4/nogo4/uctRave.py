@@ -121,7 +121,7 @@ class MCTS(object):
     def _evaluate_rollout(self, board, toplay):
 
         winner = self.simulate(board, toplay)
-        print(winner)
+        print('dinner',winner)
         if winner == BLACK:
             return 1
         else:
@@ -243,19 +243,12 @@ class TreeNode(object):
         """
         moves = board.get_empty_points()
         for move in moves:
-            print(move)
             if move not in self._children:
-                print('yes')
                 if board.is_legal(move, color):
-                    print('250')
                     self._children[move] = TreeNode(self)
-                    print('252')
                     self._children[move]._move = move
-                    print('254')
         self._children[PASS] = TreeNode(self)
-        print('256')
         self._children[PASS]._move = PASS
-        print('258')
         self._expanded = True
 
 
