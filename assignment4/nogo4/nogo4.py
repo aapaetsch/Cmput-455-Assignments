@@ -122,6 +122,7 @@ class Nogo():
             for n in range(num_simulation):
                 print(n)
                 moveIndex = ucb.findBest(stats, C, n)
+                print('move index', moveIndex)
                 result = self.simulate(tempState, legalMoves[moveIndex], color)
                 print(result)
                 if result == 'chickenDinner':
@@ -143,6 +144,7 @@ class Nogo():
         return best
 
     def simulate(self, gameState, move, toplay):
+        print('sim')
         tempState = gameState.copy()
         tempState.play_move(move, toplay)
         if self.isTerminal(self.generateLegalMoves(tempState, cp)):
