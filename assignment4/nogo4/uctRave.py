@@ -32,7 +32,7 @@ class Nogo():
         self.weights = self.openFile('nogo4/weights')
         self.best_move = None
         self.parent = None
-        self.num_sim = 2
+        self.num_sim = 0.5
         self.MCTS = MCTS(self.weights)
 
     def reset(self):
