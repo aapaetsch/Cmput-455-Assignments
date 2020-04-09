@@ -105,7 +105,8 @@ class Nogo():
         return self.weights.get(addy)
 
     def get_move(self, original_board, color):
-        self.num_sim = 1
+        self.num_sim = 10
+
         tempState = original_board.copy()
         legalMoves = self.generateLegalMoves(tempState, color)
         
@@ -122,20 +123,27 @@ class Nogo():
 
                 moveIndex = ucb.findBest(stats, C, n)
                 result = self.simulate(tempState, legalMoves[moveIndex], color)
-
+                if result == 'chickenDinner':
+                    return legalMoves[moveIndex]
 
                 stats[moveIndex][1] += 1
                 if result == color:
                     stats[moveIndex][0] += 1
-                    
+
+                if ucb.ucb(stats, C, moveIndex, n) > bestScore:
+                    self.best_move = legalMoves[moveIndex]
+
+
             best = legalMoves[ucb.bestArm(stats)]
+        
 
         return best
 
     def simulate(self, gameState, move, toplay):
         tempState = gameState.copy()
         tempState.play_move(move, toplay)
-
+        if self.isTerminal(self.generateLegalMoves(tempState, cp)):
+            return 'chickenDinner'
         
 
         while True:
@@ -159,10 +167,6 @@ class Nogo():
                 tempState.playMove(self.randomMoveGen(tempState, cp), cp)
 
             
-
-
- 
-    
 
 def run():
     """
