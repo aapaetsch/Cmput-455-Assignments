@@ -113,12 +113,8 @@ class Nogo():
         lenLegal = len(legalMoves)
         if lenLegal > 35:
             self.num_sim = 8
-        elif 35 >= lenLegal > 30:
+        elif 35 >= lenLegal > 20:
             self.num_sim = 10
-        elif 30 >= lenLegal > 25:
-            self.num_sim = 12
-        elif 25 >= lenLegal > 20:
-            self.num_sim = 14
         elif 20 >= lenLegal > 15:
             self.num_sim = 16
         else:
