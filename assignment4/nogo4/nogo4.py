@@ -105,7 +105,7 @@ class Nogo():
         return self.weights.get(addy)
 
     def get_move(self, original_board, color):
-        self.num_sim = 15
+        self.num_sim = 25
 
         tempState = original_board.copy()
         legalMoves = self.generateLegalMoves(tempState, color)

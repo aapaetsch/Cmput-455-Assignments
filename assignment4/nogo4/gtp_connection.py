@@ -54,7 +54,7 @@ class GtpConnection():
             "gogui-analyze_commands": self.gogui_analyze_cmd,
             "timelimit": self.timelimit_cmd
         }
-        self.timelimit = 27
+        self.timelimit = 25
 
         # used for argument checking
         # values: (required number of arguments, 
@@ -285,7 +285,6 @@ class GtpConnection():
                     bestScore = self.go_engine.best_move[1][i][1]
                     best = i 
             move = best
-
 
 
         if move is None:
