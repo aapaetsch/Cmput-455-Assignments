@@ -123,14 +123,17 @@ class Nogo():
 
                 moveIndex = ucb.findBest(stats, C, n)
                 result = self.simulate(tempState, legalMoves[moveIndex], color)
+                print(result)
                 if result == 'chickenDinner':
                     return legalMoves[moveIndex]
 
                 stats[moveIndex][1] += 1
                 if result == color:
                     stats[moveIndex][0] += 1
-
-                if ucb.ucb(stats, C, moveIndex, n) > bestScore:
+                score = ucb.ucb(stats, C, moveIndex, n)
+                print(score)
+                if score > bestScore:
+                    bestScore = score
                     self.best_move = legalMoves[moveIndex]
 
 
