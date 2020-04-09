@@ -2,7 +2,7 @@ from gtp_connection import GtpConnection
 from board_util import GoBoardUtil, EMPTY, BLACK, WHITE
 from simple_board import SimpleGoBoard
 import sys
-import 
+import ucb
 import numpy as np
 import random 
 from math import log, sqrt
