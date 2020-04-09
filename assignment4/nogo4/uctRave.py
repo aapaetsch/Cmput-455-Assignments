@@ -32,7 +32,7 @@ class Nogo():
         self.weights = self.openFile('nogo4/weights')
         self.best_move = None
         self.parent = None
-        self.num_sim = 10
+        self.num_sim = 2
         self.MCTS = MCTS(self.weights)
 
     def reset(self):
@@ -104,7 +104,7 @@ class MCTS(object):
             if move == PASS:
                 move = None
             if not board.is_legal(move, color):
-                print('illegal')
+                move = self.randomMoveGen(board, color)
             board.play_move(move, color)
             color = BLACK + WHITE - color
             node = next_node
@@ -120,9 +120,7 @@ class MCTS(object):
         node.update_recursive(leaf_value)
 
     def _evaluate_rollout(self, board, toplay):
-        print('rollout')
         winner = self.simulate(board, toplay)
-        print('dinner',winner)
         if winner == BLACK:
             return 1
         else:
