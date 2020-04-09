@@ -124,12 +124,13 @@ class Nogo():
                 moveIndex = ucb.findBest(stats, C, n)
                 print('move index', moveIndex)
                 result = self.simulate(tempState, legalMoves[moveIndex], color)
-                print(result)
+                print('result',result)
                 
                 stats[moveIndex][1] += 1
                 if result == color:
                     stats[moveIndex][0] += 1
-
+                    
+                print(stats)
                 score = (stats[moveIndex][0]/stats[moveIndex][1]) + C * sqrt(log(n) / stats[moveIndex][1])
                 print(score)
                 if score > bestScore:
