@@ -7,6 +7,8 @@ import numpy as np
 import random 
 from math import log, sqrt
 PASS = 'pass'
+import ptb
+ptb.enable()
 
 def uct_val(node, child, exploration, max_flag): 
     if child._n_visits == 0:
@@ -249,7 +251,7 @@ class TreeNode(object):
         self._children[PASS] = TreeNode(self)
         self._children[PASS]._move = PASS
         self._expanded = True
-        print('end')
+
 
     def select(self, exploration, max_flag):
         """
