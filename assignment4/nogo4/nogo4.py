@@ -127,16 +127,11 @@ class Nogo():
                 if result == color:
                     stats[moveIndex][0] += 1
 
+                self.best_move = [legalMoves,stats] 
 
 
 
-
-                if n > 1:
-                    score = (stats[moveIndex][0]/stats[moveIndex][1]) + C * sqrt(log(n) / stats[moveIndex][1])
-                    print(score)
-                    if score > bestScore:
-                        bestScore = score
-                        self.best_move = legalMoves[moveIndex]
+                
                 
 
                 

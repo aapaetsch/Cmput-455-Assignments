@@ -13,6 +13,7 @@ from board_util import GoBoardUtil, BLACK, WHITE, EMPTY, BORDER, \
 import numpy as np
 import re
 import signal
+import ucb
 
 class GtpConnection():
 
@@ -54,7 +55,7 @@ class GtpConnection():
             "gogui-analyze_commands": self.gogui_analyze_cmd,
             "timelimit": self.timelimit_cmd
         }
-        self.timelimit = 28
+        self.timelimit = 27
 
         # used for argument checking
         # values: (required number of arguments, 
@@ -278,7 +279,9 @@ class GtpConnection():
             self.board=self.sboard
             signal.alarm(0)
         except Exception as e:
-            move=self.go_engine.best_move
+            move=self.go_engine.best_move[0][ucb.bestArm(self.go_engine.best_move[1])]
+
+
 
         if move is None:
             self.respond("resign")
