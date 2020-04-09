@@ -127,7 +127,8 @@ class Nogo():
                 if result == color:
                     stats[moveIndex][0] += 1
 
-                self.best_move = [legalMoves,stats] 
+                if stats[moveIndex][1] > bestScore:
+                    self.best_move = legalMoves[moveIndex] 
 
             best = legalMoves[ucb.bestArm(stats)]
         

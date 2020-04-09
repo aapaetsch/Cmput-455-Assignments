@@ -278,13 +278,7 @@ class GtpConnection():
             self.board=self.sboard
             signal.alarm(0)
         except Exception as e:
-            best = -1
-            bestScore = -float('inf')
-            for i in range(len(self.go_engine.best_move[1])):
-                if self.go_engine.best_move[1][i][1] > bestScore:
-                    bestScore = self.go_engine.best_move[1][i][1]
-                    best = i 
-            move = best
+            move = self.go_engine.best_move
 
 
         if move is None:
