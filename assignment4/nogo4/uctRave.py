@@ -106,7 +106,7 @@ class MCTS(object):
             color = BLACK + WHITE - color
             node = next_node
             print('end of loop')
-        print(node.is_leaf())
+        print(node.is_leaf(), color, board.current_player)
         assert node.is_leaf()
         if not node._expanded:
             node.expand(board, color)
