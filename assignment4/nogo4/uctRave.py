@@ -101,7 +101,10 @@ class MCTS(object):
             max_flag = color == BLACK
             move, next_node = node.select(self.exploration,max_flag)
             print('\tselected')
-            
+            if move == PASS:
+                move = None
+            if not board.is_legal(move, color):
+                print('illegal')
             board.play_move(move, color)
             color = BLACK + WHITE - color
             node = next_node
@@ -126,7 +129,7 @@ class MCTS(object):
             return 0
 
     def simulate(self, board, toplay):
-        tempState = gameState.copy()
+        tempState = board.copy()
 
         while True:
             cp = tempState.current_player
