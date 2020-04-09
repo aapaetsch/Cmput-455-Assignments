@@ -125,9 +125,7 @@ class Nogo():
                 print('move index', moveIndex)
                 result = self.simulate(tempState, legalMoves[moveIndex], color)
                 print(result)
-                if result == 'chickenDinner':
-                    return legalMoves[moveIndex]
-
+                
                 stats[moveIndex][1] += 1
                 if result == color:
                     stats[moveIndex][0] += 1
@@ -147,10 +145,8 @@ class Nogo():
         print('sim')
         tempState = gameState.copy()
         tempState.play_move(move, toplay)
-        if self.isTerminal(self.generateLegalMoves(tempState, cp)):
-            return 'chickenDinner'
         
-
+        print('while')
         while True:
 
             cp = tempState.current_player
