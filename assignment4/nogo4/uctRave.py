@@ -44,11 +44,9 @@ class Nogo():
     
 
     def get_move(self, board, toplay):
-        print('ping')
         legalMoves = self.generateLegalMoves(board, toplay)
         num_simulation = len(legalMoves)* self.num_sim
         move = self.MCTS.get_move(board, toplay, num_simulation)
-        print(move)
         self.update(move)
         return move
 
@@ -64,16 +62,32 @@ class MCTS(object):
         self.exploration = 0.4
         self.weights = weights
 
+    def get_move(self, board, toplay, num_simulation):
 
-
+        if self.toplay != toplay:
+            self._root = TreeNode(None)
+        print('getmove')
+        for n in range(num_simulation):
+            self._playout(board.copy(), toplay)
+        moves_ls = [(move, node._n_visits) for move, node in self._root._children.items()]
+        print('lsmoves:',moves_ls)
+        if not moves_ls:
+            return None
+        move = sorted(moves_ls, key=lambda i:i[1], reverse=True)[0]
+        if move[0] == PASS:
+            return None
+        assert board.is_legal(move[0], toplay)
+        return move[0]
 
     def _playout(self, board, color):
         
         node = self._root 
         # This will be True olny once for the root
         if not node._expanded:
+            print('expanding')
             node.expand(board, color)
         while not node.is_leaf():
+            print('notleaf')
             # Greedily select next move.                
             max_flag = color == BLACK
             move, next_node = node.select(self.exploration,max_flag)
@@ -174,22 +188,7 @@ class MCTS(object):
         return False
 
 
-    def get_move(self, board, toplay, num_simulation):
 
-        if self.toplay != toplay:
-            self._root = TreeNode(None)
-
-        for n in range(num_simulation):
-            self._playout(board.copy(), toplay)
-        moves_ls = [(move, node._n_visits) for move, node in self._root._children.items()]
-        print('lsmoves:',moves_ls)
-        if not moves_ls:
-            return None
-        move = sorted(moves_ls, key=lambda i:i[1], reverse=True)[0]
-        if move[0] == PASS:
-            return None
-        assert board.is_legal(move[0], toplay)
-        return move[0]
 
     def update_with_move(self, last_move):
         """
