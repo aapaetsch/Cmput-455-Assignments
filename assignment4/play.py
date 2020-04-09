@@ -1,7 +1,7 @@
 import pexpect
 
 player1='flat_mc_player/nogo_flat_mc.py'
-player2='nogo4/uctRave.py' 
+player2='nogo4/nogo4.py' 
 
 win1=0
 win2=0
@@ -111,7 +111,7 @@ def saveResult():
     f.write("player 2 wins {}\n".format(win2))
     f.close()
 
-playGames(numGame=1)
+playGames(numGame=3)
 outputResult()
 saveResult()
 
