@@ -78,7 +78,7 @@ class MCTS(object):
             print('playout')
             self._playout(board.copy(), toplay)
         moves_ls = [(move, node._n_visits) for move, node in self._root._children.items()]
-
+        print(moves_ls)
         if not moves_ls:
             return None
         move = sorted(moves_ls, key=lambda i:i[1], reverse=True)[0]
