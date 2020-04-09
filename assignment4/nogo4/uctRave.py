@@ -16,6 +16,13 @@ def uct_val(node, child, exploration, max_flag):
     else:
         return float(child._n_visits - child._black_wins)/child._n_visits + exploration*np.sqrt(np.log(node._n_visits)/child._n_visits)
 
+def generateLegalMoves(gameState, color):
+        ePts = gameState.get_empty_points()
+        moves = []
+        for pt in ePts:
+            if gameState.is_legal(pt, color):
+                moves.append(pt)
+        return moves
 
 class Nogo():
     def __init__(self):
@@ -44,7 +51,7 @@ class Nogo():
     
 
     def get_move(self, board, toplay):
-        legalMoves = self.generateLegalMoves(board, toplay)
+        legalMoves = generateLegalMoves(board, toplay)
         num_simulation = len(legalMoves)* self.num_sim
         move = self.MCTS.get_move(board, toplay, num_simulation)
         self.update(move)
@@ -66,11 +73,10 @@ class MCTS(object):
 
         if self.toplay != toplay:
             self._root = TreeNode(None)
-        print('getmove')
         for n in range(num_simulation):
             self._playout(board.copy(), toplay)
         moves_ls = [(move, node._n_visits) for move, node in self._root._children.items()]
-        print('lsmoves:',moves_ls)
+
         if not moves_ls:
             return None
         move = sorted(moves_ls, key=lambda i:i[1], reverse=True)[0]
@@ -84,10 +90,10 @@ class MCTS(object):
         node = self._root 
         # This will be True olny once for the root
         if not node._expanded:
-            print('expanding')
+
             node.expand(board, color)
         while not node.is_leaf():
-            print('notleaf')
+
             # Greedily select next move.                
             max_flag = color == BLACK
             move, next_node = node.select(self.exploration,max_flag)
@@ -120,7 +126,7 @@ class MCTS(object):
 
         while True:
             cp = tempState.current_player
-            legalMoves = self.generateLegalMoves(tempState, cp)
+            legalMoves = generateLegalMoves(tempState, cp)
             if self.isTerminal(legalMoves):
                 return self.evaluate(cp)
             moves = self.getPatternMoves(tempState, cp, legalMoves)
@@ -137,13 +143,7 @@ class MCTS(object):
             if not playedMove:
                 tempState.playMove(self.randomMoveGen(tempState, cp), cp)
 
-    def generateLegalMoves(self, gameState, color):
-        ePts = gameState.get_empty_points()
-        moves = []
-        for pt in ePts:
-            if gameState.is_legal(pt, color):
-                moves.append(pt)
-        return moves
+    
 
     def randomMoveGen(self, state, player):
         moves = state.get_empty_points()
