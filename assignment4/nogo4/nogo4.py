@@ -130,7 +130,7 @@ class Nogo():
                 if result == color:
                     stats[moveIndex][0] += 1
 
-                score = (stats[i][0]/stats[i][1]) + C * sqrt(log(n) / stats[i][1])
+                score = (stats[moveIndex][0]/stats[moveIndex][1]) + C * sqrt(log(n) / stats[moveIndex][1])
                 print(score)
                 if score > bestScore:
                     bestScore = score
