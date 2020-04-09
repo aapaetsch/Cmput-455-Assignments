@@ -1,4 +1,4 @@
-from gtp_connection import GtpConnection
+from gtp_connection import GtpConnection, point_to_coord, format_point
 from board_util import GoBoardUtil, EMPTY, BLACK, WHITE
 from simple_board import SimpleGoBoard
 import sys
@@ -90,8 +90,8 @@ class MCTS(object):
         node = self._root 
         # This will be True olny once for the root
         if not node._expanded:
-
             node.expand(board, color)
+
         while not node.is_leaf():
 
             # Greedily select next move.                
@@ -102,7 +102,7 @@ class MCTS(object):
             if move == PASS:
                 move = None
             board.play_move(move, color)
-            color = GoBoardUtil.opponent(color) 
+            color = BLACK + WHITE - color
             node = next_node
         assert node.is_leaf()
         if not node._expanded:
@@ -200,7 +200,7 @@ class MCTS(object):
         else:
             self._root = TreeNode(None)
         self._root._parent = None
-        self.toplay = GoBoardUtil.opponent(self.toplay)
+        self.toplay = BLACK + WHITE - self.toplay
 
     def point_to_string(self, board_size, point):
         if point == None:
