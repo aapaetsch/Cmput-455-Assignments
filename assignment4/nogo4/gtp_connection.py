@@ -275,7 +275,6 @@ class GtpConnection():
             signal.alarm(int(self.timelimit))
             self.sboard = self.board.copy()
             move = self.go_engine.get_move(self.board, color)
-            print('genmove move:',move)
             self.board=self.sboard
             signal.alarm(0)
         except Exception as e:
