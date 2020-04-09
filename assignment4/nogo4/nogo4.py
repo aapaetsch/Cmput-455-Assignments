@@ -109,7 +109,7 @@ class Nogo():
 
         tempState = original_board.copy()
         legalMoves = self.generateLegalMoves(tempState, color)
-        
+        print(legalMoves)
         bestScore = -float('inf')
 
         if len(legalMoves) == 0:
@@ -120,7 +120,7 @@ class Nogo():
             stats = [[0,0] for _ in legalMoves]
             num_simulation = len(legalMoves) * self.num_sim
             for n in range(num_simulation):
-
+                print(n)
                 moveIndex = ucb.findBest(stats, C, n)
                 result = self.simulate(tempState, legalMoves[moveIndex], color)
                 print(result)
