@@ -1,0 +1,4 @@
+player 1: nogo4/nogo4.py
+player 2: random_player/nogo_random.py
+player 1 wins 1
+player 2 wins 0
